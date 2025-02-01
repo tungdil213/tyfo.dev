@@ -23,4 +23,14 @@ afin de pouvoir justifier en tout temps tous les changements d'état.
 
 ## Cas d'utilisation
 
-A chaque fois qu'un utilisateur ou qu'une routine performe une action, un événement est consignée dans le journal de bord.
+### Journalisation des événements
+
+> **Acteur principal:** Système
+>
+> **Précondition:** Un utilisateur a réalisé une action
+>
+> **Scénario:**
+> 1. Le système écoute les actions réalisées par les utilisateurs
+> 2. Après chaque action effectuée, le système consigne l'événement dans le journal de bord
+>
+> **Remarques:** En cas de transaction en base de données, la journalisation s'effectue en même temps.
