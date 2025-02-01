@@ -42,9 +42,31 @@ Un fichier représente un fichier ou un document.
 
 ### Création d'objets
 
-En tant que prestataire, je peux créer un dossier dans un cercle.
+#### Création d'un dossier
 
-En tant que prestataire, je peux téléverser un fichier dans un dossier.
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire accède au dossier dans lequel il souhaite créer un dossier
+> 3. Le prestataire clique sur le bouton pour créer un dossier
+> 4. Le prestataire renseigne le nom et la description du dossier puis valide
+> 5. Le système crée le dossier et confirme la création au prestataire
+
+#### Téléversement d'un fichier
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire accède au dossier dans lequel il souhaite téléverser un fichier
+> 3. Le prestataire clique sur le bouton pour téléverser un fichier
+> 4. Le prestataire choisi un fichier et renseigne le nom et la description puis valide
+> 5. Le système téléverse le fichier dans le dossier et confirme l'ajout au prestataire
 
 ### Consultation d'objets
 
