@@ -34,3 +34,13 @@ afin de pouvoir justifier en tout temps tous les changements d'état.
 > 2. Après chaque action effectuée, le système consigne l'événement dans le journal de bord
 >
 > **Remarques:** En cas de transaction en base de données, la journalisation s'effectue en même temps.
+
+### Consultation des événements
+
+> **Acteur principal:** Utilisateur
+>
+> **Précondition:** L'utilisateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. L'utilisateur accède depuis le menu au journal des événements
+> 2. L'utilisateur peut consulter l'ensemble des événements qui le concerne selon les rôles qui luis sont attribués
