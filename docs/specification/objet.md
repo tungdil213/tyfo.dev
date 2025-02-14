@@ -37,6 +37,7 @@ Un fichier représente un fichier ou un document.
  | Dernière date de modification | Dernière date de modification du fichier               | Date et heure   | 
  | Revision                      | Numéro de révision du fichier                          | Nombre entier   | 
  | Empreinte                     | Empreinte numérique représentant le contenu du fichier | Texte           | 
+ | Localisation | Emplacement physique où se trouve le contenu du fichier | Text |
 
 ## Cas d'utilisation
 
