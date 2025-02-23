@@ -1,0 +1,15 @@
+{
+	"name": "@tyfo.dev/eslint-config",
+	"version": "1.0.0",
+	"files": [
+		"library.js",
+		"react.js",
+		"storybook.js"
+	],
+	"devDependencies": {
+		"@vercel/style-guide": "^5.2.0",
+		"eslint-plugin-mdx": "^3.1.5",
+		"eslint-plugin-only-warn": "^1.1.0",
+		"eslint-plugin-storybook": "^0.8.0"
+	}
+}

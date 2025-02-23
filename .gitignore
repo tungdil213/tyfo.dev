@@ -2,6 +2,13 @@
 node_modules
 build
 tmp
+dist
+.turbo
+server/dist
+public/dist
+storybook-static/
+.cache
+.DS_Store
 
 # Secrets
 .env

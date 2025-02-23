@@ -25,8 +25,8 @@ La configuration TypeScript est personnalisée avec les options suivantes :
 #### **Fichiers ignorés**
 Les chemins suivants sont exclus de l'analyse ESLint :
 
-- `apps/romainlanz.com/.adonisjs/*` : Fichiers générés automatiquement par AdonisJS.
-- `apps/romainlanz.comtypes/db.ts` : Typage spécifique ignoré pour des raisons de compatibilité.
+- `apps/tyfo.dev/.adonisjs/*` : Fichiers générés automatiquement par AdonisJS.
+- `apps/tyfo.devtypes/db.ts` : Typage spécifique ignoré pour des raisons de compatibilité.
 
 ### Règles personnalisées
 
@@ -56,7 +56,7 @@ export default julr(
 		},
 	},
 	{
-		ignores: ['apps/romainlanz.com/.adonisjs/*', 'apps/romainlanz.comtypes/db.ts'],
+		ignores: ['apps/tyfo.dev/.adonisjs/*', 'apps/tyfo.dev/types/db.ts'],
 	},
 	{
 		rules: {

@@ -1,18 +1,42 @@
+version: "3.8"
+
 services:
+  site:
+    container_name: tyfo.dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tyfo.dev:latest
+    env_file:
+      - ./apps/tyfo.dev/.env
+    ports:
+      - "3333:3333"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - DB_HOST=host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - database
+    command: >
+      sh -c "pnpm run build:assets && node ./apps/tyfo.dev/bin/server.js"
+
   database:
     image: postgres:16-alpine3.19
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - psql-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
+
   mailer:
     image: axllent/mailpit:v1.21
     ports:
-      - 1025:1025
-      - 8025:8025
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   psql-data:

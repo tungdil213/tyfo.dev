@@ -1,0 +1,17 @@
+{
+	"extends": "@tyfo.dev/typescript-config/react-library.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"@tyfo.dev/ui/sytles": ["dist/style/global.css"]
+		},
+		"declaration": true,
+		"declarationDir": "./dist",
+		"declarationMap": true,
+		"outDir": "./dist",
+		"sourceMap": true
+	},
+	"include": ["."],
+	"exclude": ["dist", "build", "node_modules"]
+}
