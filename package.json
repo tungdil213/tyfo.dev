@@ -1,27 +1,43 @@
 {
+	"name": "tyfo.dev",
 	"type": "module",
+	"version": "0.0.1",
 	"private": true,
-	"packageManager": "yarn@4.6.0",
+	"packageManager": "pnpm@10.4.0",
 	"license": "UNLICENSED",
 	"scripts": {
+		"build": "turbo run build && cp -r apps/tyfo.dev/.env apps/tyfo.dev/build/",
+		"clean": "turbo run clean && rm -rf node_modules",
+		"dev": "turbo run dev",
 		"docker:up": "docker compose up -d",
 		"docker:down": "docker compose down",
 		"docker:build": "docker build . -t site",
-		"docker:run": "docker run --env-file ./apps/tyfo.dev/.env -e NODE_ENV=production -e HOST=0.0.0.0 -e DB_HOST=host.docker.internal -it -p 3333:3333 --add-host=host.docker.internal:host-gateway site",
+		"docker:run": "docker run --rm --name site_tyfo.dev --env-file ./apps/tyfo.dev/.env -e NODE_ENV=production -e HOST=0.0.0.0 -e DB_HOST=host.docker.internal -it -p 3333:3333 --add-host=host.docker.internal:host-gateway site",
 		"lint": "eslint .",
+		"preview-storybook": "turbo run preview-storybook",
 		"format": "prettier .",
 		"taze": "yarn dlx taze -r -I",
 		"typecheck": "npm run typecheck --workspaces"
 	},
 	"devDependencies": {
-		"@julr/tooling-configs": "^3.0.1",
-		"eslint": "^9.17.0",
-		"prettier": "^3.4.2"
+		"@julr/tooling-configs": "^4.0.0",
+		"eslint": "^9.21.0",
+		"prettier": "^3.5.2",
+		"prettier-edgejs": "^0.2.35",
+		"turbo": "^2.4.2"
 	},
-	"workspaces": {
-		"packages": [
-			"apps/*",
-			"packages/*"
-		]
+	"pnpm": {
+		"overrides": {
+			"@inertiajs/core": "2.0.0",
+			"strtok3": "8.0.1"
+		}
+	},
+	"overrides": {
+		"@inertiajs/core": "2.0.0",
+		"strtok3": "8.0.1"
+	},
+	"resolutions": {
+		"@inertiajs/core": "2.0.0",
+		"strtok3": "8.0.1"
 	}
 }

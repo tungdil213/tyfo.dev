@@ -1,0 +1,33 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"globalDependencies": ["package.json", "pnpm-lock.yaml"],
+	"tasks": {
+		"clean": {
+			"cache": false
+		},
+		"build": {
+			"dependsOn": ["build:ui", "build:adonis", "^build"]
+		},
+		"build:ui": {
+			"inputs": ["packages/ui/src/**/*", "packages/ui/tailwind.config.js"],
+			"outputs": ["packages/ui/dist"]
+		},
+		"build:adonis": {
+			"inputs": ["apps/tyfo.dev/"],
+			"outputs": ["apps/tyfo.dev/build/public", "apps/tyfo.dev/build/inertia"],
+			"dependsOn": ["build:ui"],
+			"cache": true
+		},
+		"lint": {
+			"dependsOn": ["^lint"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"preview-storybook": {
+			"dependsOn": ["^build"],
+			"cache": false
+		}
+	}
+}
