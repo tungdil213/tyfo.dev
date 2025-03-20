@@ -5,6 +5,9 @@ export default class Log extends BaseModel {
   @column({ columnName: 'log_id', isPrimary: true })
   declare id: number
 
+  @column({ columnName: 'log_uuid' })
+  declare uuid: string
+
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare createdAt: DateTime
 

@@ -5,6 +5,9 @@ export default class Role extends BaseModel {
   @column({ columnName: 'role_id', isPrimary: true })
   declare id: number
 
+  @column({ columnName: 'role_uuid' })
+  declare uuid: string
+
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare createdAt: DateTime
 

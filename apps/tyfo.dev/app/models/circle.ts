@@ -1,9 +1,14 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
+import Folder from '#models/folder'
 
 export default class Circle extends BaseModel {
   @column({ columnName: 'circle_id', isPrimary: true })
   declare id: number
+
+  @column({ columnName: 'circle_uuid' })
+  declare uuid: string
 
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare createdAt: DateTime
@@ -19,4 +24,7 @@ export default class Circle extends BaseModel {
 
   @column({ columnName: 'owner_id' })
   declare ownerId: number
+
+  @hasMany(() => Folder)
+  declare folders: HasMany<typeof Folder>
 }

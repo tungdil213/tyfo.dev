@@ -1,9 +1,15 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import Folder from '#models/folder'
+import User from '#models/user'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
-export default class Object extends BaseModel {
+export default class ObjectModel extends BaseModel {
   @column({ columnName: 'object_id', isPrimary: true })
   declare id: number
+
+  @column({ columnName: 'object_uuid' })
+  declare uuid: string
 
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare createdAt: DateTime
@@ -32,4 +38,9 @@ export default class Object extends BaseModel {
   @column()
   declare location: string
 
+  @belongsTo(() => Folder)
+  declare folder: BelongsTo<typeof Folder>
+
+  @belongsTo(() => User, { foreignKey: 'ownerId' })
+  declare owner: BelongsTo<typeof User>
 }
