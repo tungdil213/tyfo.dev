@@ -12,7 +12,7 @@ export default class extends BaseSchema {
       table.timestamp('confirmation_time', { useTz: true }).nullable()
       table.boolean('is_notified').defaultTo(false)
       table
-        .integer('recipient_id')
+        .integer('user_id')
         .unsigned()
         .notNullable()
         .references('user_id')

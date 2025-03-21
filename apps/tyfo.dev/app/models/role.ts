@@ -5,10 +5,10 @@ import Attribution from './attribution.js'
 import Permission from './permission.js'
 
 export default class Role extends BaseModel {
-  @column({ isPrimary: true })
+  @column({ columnName: 'role_id', isPrimary: true })
   declare id: number
 
-  @column()
+  @column({ columnName: 'role_uuid' })
   declare uuid: string
 
   @column()

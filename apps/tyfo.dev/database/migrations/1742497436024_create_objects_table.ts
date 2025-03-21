@@ -9,12 +9,13 @@ export default class extends BaseSchema {
       table.uuid('object_uuid').notNullable().unique()
 
       table
-        .integer('owner_id')
+        .integer('user_id')
         .unsigned()
         .notNullable()
         .references('user_id')
         .inTable('users')
         .onDelete('CASCADE')
+
       table
         .integer('folder_id')
         .unsigned()
@@ -22,6 +23,7 @@ export default class extends BaseSchema {
         .references('folder_id')
         .inTable('folders')
         .onDelete('CASCADE')
+
       table.string('name').notNullable()
       table.string('mime_type').notNullable()
       table.integer('revision').unsigned().notNullable().defaultTo(1)

@@ -5,14 +5,16 @@ import User from '#models/user'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class ObjectModel extends BaseModel {
+  static table = 'objects'
+
   @column({ columnName: 'object_id', isPrimary: true })
   declare id: number
 
   @column({ columnName: 'object_uuid' })
   declare uuid: string
 
-  @column({ columnName: 'owner_id' })
-  declare ownerId: number
+  @column({ columnName: 'user_id' })
+  declare userId: number
 
   @column({ columnName: 'folder_id' })
   declare folderId: number

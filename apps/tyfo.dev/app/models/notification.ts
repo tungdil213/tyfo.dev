@@ -20,7 +20,7 @@ export default class Notification extends BaseModel {
   declare isNotified: boolean
 
   @column()
-  declare recipientId: number
+  declare userId: number
 
   @column()
   declare template: string

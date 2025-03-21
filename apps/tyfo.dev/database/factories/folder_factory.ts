@@ -10,9 +10,9 @@ export const FolderFactory = Factory.define(Folder, async ({ faker }) => {
     uuid: randomUUID(),
     name: faker.commerce.department(),
     description: faker.lorem.sentence(),
+    circleId: undefined, // Défini dynamiquement
+    userId: undefined, // Défini dynamiquement
   }
 })
   .relation('objects', () => ObjectModelFactory)
-  .relation('circle', () => CircleFactory)
-  .relation('user', () => UserFactory)
   .build()

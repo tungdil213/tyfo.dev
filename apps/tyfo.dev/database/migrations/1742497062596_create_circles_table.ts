@@ -12,7 +12,7 @@ export default class extends BaseSchema {
       table.text('description').notNullable()
 
       table
-        .integer('owner_id')
+        .integer('user_id')
         .unsigned()
         .notNullable()
         .references('user_id')

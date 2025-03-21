@@ -7,7 +7,7 @@ import { AttributionFactory } from '#factories/attribution_factory'
 export const UserFactory = Factory.define(User, async ({ faker }) => {
   return {
     uuid: randomUUID(),
-    username: faker.internet.userName(),
+    fullName: faker.internet.username(),
     email: faker.internet.email(),
     password: await hash.make('password123'),
   }

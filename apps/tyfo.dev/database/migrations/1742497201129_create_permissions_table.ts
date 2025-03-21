@@ -8,8 +8,15 @@ export default class extends BaseSchema {
       table.increments('permission_id')
       table.uuid('permission_uuid').notNullable().unique()
 
-      table.string('role').notNullable()
       table.string('action').notNullable()
+
+      table
+        .integer('role_id')
+        .unsigned()
+        .notNullable()
+        .references('role_id')
+        .inTable('roles')
+        .onDelete('CASCADE')
 
       table.timestamp('created_at', { useTz: true }).defaultTo(this.now()).notNullable()
       table.timestamp('updated_at', { useTz: true }).nullable()
