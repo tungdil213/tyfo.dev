@@ -8,12 +8,32 @@ export default class extends BaseSchema {
       table.increments('attribution_id')
       table.uuid('attribution_uuid').notNullable().unique()
 
-      table.integer('user_id').unsigned().notNullable()
-      table.integer('role_id').unsigned().notNullable()
-      table.integer('circle_id').unsigned().notNullable()
+      table
+        .integer('user_id')
+        .unsigned()
+        .notNullable()
+        .references('user_id')
+        .inTable('users')
+        .onDelete('CASCADE')
 
-      table.timestamp('created_at').notNullable()
-      table.timestamp('updated_at').nullable()
+      table
+        .integer('role_id')
+        .unsigned()
+        .notNullable()
+        .references('role_id')
+        .inTable('roles')
+        .onDelete('CASCADE')
+
+      table
+        .integer('circle_id')
+        .unsigned()
+        .notNullable()
+        .references('circle_id')
+        .inTable('circles')
+        .onDelete('CASCADE')
+
+      table.timestamp('created_at', { useTz: true }).defaultTo(this.now()).notNullable()
+      table.timestamp('updated_at', { useTz: true }).nullable()
     })
   }
 

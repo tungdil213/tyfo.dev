@@ -12,9 +12,6 @@ export default class Attribution extends BaseModel {
   @column({ columnName: 'attribution_uuid' })
   declare uuid: string
 
-  @column.dateTime({ columnName: 'created_at', autoCreate: true })
-  declare createdAt: DateTime
-
   @column({ columnName: 'user_id' })
   declare userId: number
 
@@ -24,6 +21,13 @@ export default class Attribution extends BaseModel {
   @column({ columnName: 'circle_id' })
   declare circleId: number
 
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+
+  // Relations
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 

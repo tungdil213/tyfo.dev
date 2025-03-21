@@ -11,12 +11,6 @@ export default class ObjectModel extends BaseModel {
   @column({ columnName: 'object_uuid' })
   declare uuid: string
 
-  @column.dateTime({ columnName: 'created_at', autoCreate: true })
-  declare createdAt: DateTime
-
-  @column.dateTime({ columnName: 'updated_at', autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime
-
   @column({ columnName: 'owner_id' })
   declare ownerId: number
 
@@ -38,9 +32,16 @@ export default class ObjectModel extends BaseModel {
   @column()
   declare location: string
 
+  @column.dateTime({ columnName: 'created_at', autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ columnName: 'updated_at', autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+
+  // Relations
+  @belongsTo(() => User)
+  declare owner: BelongsTo<typeof User>
+
   @belongsTo(() => Folder)
   declare folder: BelongsTo<typeof Folder>
-
-  @belongsTo(() => User, { foreignKey: 'ownerId' })
-  declare owner: BelongsTo<typeof User>
 }

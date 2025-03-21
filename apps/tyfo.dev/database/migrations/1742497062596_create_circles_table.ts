@@ -10,10 +10,17 @@ export default class extends BaseSchema {
 
       table.string('name').notNullable()
       table.text('description').notNullable()
-      table.integer('owner_id').unsigned().notNullable()
 
-      table.timestamp('created_at').notNullable()
-      table.timestamp('updated_at').nullable()
+      table
+        .integer('owner_id')
+        .unsigned()
+        .notNullable()
+        .references('user_id')
+        .inTable('users')
+        .onDelete('CASCADE')
+
+      table.timestamp('created_at', { useTz: true }).defaultTo(this.now()).notNullable()
+      table.timestamp('updated_at', { useTz: true }).nullable()
     })
   }
 

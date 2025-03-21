@@ -1,12 +1,21 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
+import Attribution from './attribution.js'
+import Permission from './permission.js'
 
 export default class Role extends BaseModel {
-  @column({ columnName: 'role_id', isPrimary: true })
+  @column({ isPrimary: true })
   declare id: number
 
-  @column({ columnName: 'role_uuid' })
+  @column()
   declare uuid: string
+
+  @column()
+  declare name: string
+
+  @column()
+  declare description: string | null
 
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare createdAt: DateTime
@@ -14,9 +23,10 @@ export default class Role extends BaseModel {
   @column.dateTime({ columnName: 'updated_at', autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
 
-  @column()
-  declare name: String
+  // Relations
+  @hasMany(() => Attribution)
+  declare attributions: HasMany<typeof Attribution>
 
-  @column()
-  declare description: String
+  @hasMany(() => Permission)
+  declare permissions: HasMany<typeof Permission>
 }

@@ -8,7 +8,14 @@ export default class extends BaseSchema {
       table.increments('log_id')
       table.uuid('log_uuid').notNullable().unique()
 
-      table.integer('user_id').unsigned().notNullable()
+      table
+        .integer('user_id')
+        .unsigned()
+        .notNullable()
+        .references('user_id')
+        .inTable('users')
+        .onDelete('CASCADE')
+
       table.string('action').notNullable()
       table.string('primary_type').notNullable()
       table.string('primary_object').notNullable()
@@ -16,8 +23,8 @@ export default class extends BaseSchema {
       table.string('secondary_object').notNullable()
       table.text('message').notNullable()
 
-      table.timestamp('created_at').notNullable()
-      table.timestamp('updated_at').nullable()
+      table.timestamp('created_at', { useTz: true }).defaultTo(this.now()).notNullable()
+      table.timestamp('updated_at', { useTz: true }).nullable()
     })
   }
 

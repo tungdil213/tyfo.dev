@@ -11,8 +11,8 @@ export default class extends BaseSchema {
       table.string('role').notNullable()
       table.string('action').notNullable()
 
-      table.timestamp('created_at').notNullable()
-      table.timestamp('updated_at').nullable()
+      table.timestamp('created_at', { useTz: true }).defaultTo(this.now()).notNullable()
+      table.timestamp('updated_at', { useTz: true }).nullable()
     })
   }
 

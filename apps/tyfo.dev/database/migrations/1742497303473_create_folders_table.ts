@@ -8,14 +8,32 @@ export default class extends BaseSchema {
       table.increments('folder_id')
       table.uuid('folder_uuid').notNullable().unique()
 
-      table.integer('circle_id').unsigned().notNullable()
-      table.integer('user_id').unsigned().notNullable()
-      table.integer('parent_id').unsigned().nullable()
+      table
+        .integer('circle_id')
+        .unsigned()
+        .notNullable()
+        .references('circle_id')
+        .inTable('circles')
+        .onDelete('CASCADE')
+      table
+        .integer('user_id')
+        .unsigned()
+        .notNullable()
+        .references('user_id')
+        .inTable('users')
+        .onDelete('CASCADE')
+      table
+        .integer('parent_id')
+        .unsigned()
+        .nullable()
+        .references('folder_id')
+        .inTable('folders')
+        .onDelete('CASCADE')
       table.string('name').notNullable()
       table.text('description').nullable()
 
-      table.timestamp('created_at')
-      table.timestamp('updated_at')
+      table.timestamp('created_at', { useTz: true }).defaultTo(this.now()).notNullable()
+      table.timestamp('updated_at', { useTz: true }).nullable()
     })
   }
 

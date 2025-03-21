@@ -10,9 +10,6 @@ import { RoleFactory } from '#factories/role_factory'
 export const AttributionFactory = Factory.define(Attribution, async ({ faker }) => {
   return {
     uuid: randomUUID(),
-    username: faker.internet.userName(),
-    email: faker.internet.email(),
-    password: await hash.make('password123'),
   }
 })
   .relation('user', () => UserFactory)
