@@ -1,0 +1,501 @@
+# Utilisateurs
+
+Un utilisateur est une personne physique qui représente elle-même, une autre personne physique, ou une personne morale.
+
+Cet utilisateur est renseigné dans l'application par ses données personnelles dont ces informations d'authentification.
+
+Un utilisateur interagit avec l'application de deux manières distinctes:
+ * en tant que fournisseur d'une prestation, appelé prestataire
+ * et/ou en tant que consommateur d'une prestation, appelé consommateur;
+
+Le prestataire configure et met à disposition des prestations et des documents.
+
+Le consommateur consomme les prestations et les documents mis à sa disposition.
+
+## Entité
+
+ | Attribut                       | Description                                                   | Format          | 
+ | ------------------------------ | ------------------------------------------------------------- | --------------- | 
+ | ID                             | Identifiant unique de l'utilisateur                           | UUID            | 
+ | Référence client               | Code de référence du client                                   | Texte           | 
+ | Titre                          | Titre ou genre de l'utilisateur                               | Texte           | 
+ | Nom                            | Nom de l'utilisateur                                          | Texte           | 
+ | Prénom                         | Prénom de l'utilisateur                                       | Texte           | 
+ | Adresse Email                  | Adresse Email de l'utilisateur                                | Texte           | 
+ | Adresse Postale                | Adresse postale de l'utilisateur                              | Texte           | 
+ | Numéro                         | Numéro de l'immeuble                                          | Texte           | 
+ | Code postal                    | Code postal                                                   | Texte           | 
+ | Localité                       | Nom de la localité                                            | Texte           | 
+ | Numéro de téléphone primaire   | Numéro de téléphone mobile ou fixe à utiliser prioritairement | Texte           | 
+ | Numéro de téléphone secondaire | Numéro de téléphone mobile ou fixe secondaire                 | Texte           | 
+
+## Cas d'utilisation
+
+### Création d'un utilisateur
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède aux paramètres d'administration puis à la section utilisateurs
+> 2. Le prestataire clique sur le bouton ajouter un utilisateur
+> 3. Le prestataire saisi les données du nouvel utilisateur
+> 4. Le prestataire assigne un cercle et un rôle
+> 5. Le prestataire valide la création
+> 5. Le système crée le nouvel utilisateur et confirme au prestataire
+>
+> **Remarques:** Le prestataire ne peut pas saisir de mot de passe. Seul un utilisateur peut le faire pour lui-même.
+>
+> **Postcondition:** Le système va envoyer un email au nouvel utilisateur pour
+l'inviter à terminer la création de son compte. Le nouvel utilisateur a 7 jours pour
+compléter la création du compte.
+
+### Archivage d'un utilisateur
+
+> **Acteur principal:** Administrateur
+>
+> **Précondition:** Le Administrateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le Administrateur accède aux paramètres d'administration puis à la section utilisateurs
+> 2. Le Administrateur choisi l'utilisateur dans la liste et clique dessus pour accéder aux détails
+> 3. Le Administrateur clique sur le bouton archiver
+> 4. Le système demande une confirmation
+> 5. En cas de confirmation positive, le système archive l'utilisateur et confirme au Administrateur
+>
+> **Remarques:** En archivant un utilisateur, aucune données n'est effacée mais l'utilisateur n'est plus visible dans l'interface et il ne peut plus accéder à son compte, la connexion n'est plus possible.
+
+### Modification d'un utilisateur
+
+> **Acteur principal:** Administrateur
+>
+> **Précondition:** Le Administrateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le Administrateur accède aux paramètres d'administration puis à la section utilisateurs
+> 2. Le Administrateur choisi l'utilisateur dans la liste et clique dessus pour accéder aux détails
+> 3. Le Administrateur clique sur le bouton modifier
+> 4. Le Administrateur saisi les nouvelles données puis valide
+> 5. Le système modifie l'utilisateur et confirme au Administrateur
+>
+> **Postcondition:** Le système envoi un email à l'utilisateur pour l'informer de modifications
+>
+> **Remarques:** Le Administrateur ne peut pas modifier le mot de passe ou autre données d'authentification. Seul l'utilisateur peut le faire pour lui-même.
+>
+> A noter que les données de l'utilisateur ne sont pas envoyées par email, uniquement une invitation à les consulter.
+
+### Consultation d'un profile utilisateur
+
+> **Acteur principal:** Administrateur
+>
+> **Précondition:** Le Administrateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le Administrateur accède aux paramètres d'administration puis à la section utilisateurs
+> 2. Le Administrateur choisi l'utilisateur dans la liste et clique dessus pour accéder aux détails
+
+### Consultation de son profile utilisateur
+
+> **Acteur principal:** Utilisateur
+>
+> **Précondition:** L'utilisateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. L'utilisateur accède aux détails de son profile dans le menu
+> 2. L'utilisateur peut consulter ses données
+
+### Modification de son profile utilisateur
+
+> **Acteur principal:** Utilisateur
+>
+> **Précondition:** L'utilisateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. L'utilisateur accède aux détails de son profile dans le menu
+> 2. L'utilisateur clique sur Modifier
+> 3. L'utilisateur peut modifier certaines données autorisées puis valide
+> 4. Le système applique les changements et confirme à l'utilisateur.
+
+# Objets
+
+Les objets sont des éléments pour lesquels s'appliquent une prestation. Ils comprennent les éléments suivants:
+* des dossiers pour la classification et le rangement,
+* des fichiers dans différents formats,
+* des documents dans différents formats,
+* des documents consultable et ou éditable dans l'application,
+* des documents numériquement signés;
+
+## Entités
+
+### Dossier
+
+ | Attribut                      | Description                                     | Format          | 
+ | ----------------------------- | ----------------------------------------------- | --------------- | 
+ | ID                            | Identifiant unique du dossier                   | UUID            | 
+ | Nom                           | Nom du dossier                                  | Texte           | 
+ | Description                   | Description du dossier                          | Texte           | 
+ | Cercle                        | Référence au cercle dans lequel est ce dossier  | UUID            | 
+ | Parent                        | Référence au cercle parent, si sous-dossier     | UUID            | 
+ | Date de création              | Date de création du dossier                     | Date et heure   | 
+ | Date de dernière modification | Date de dernière modification du dossier        | Date et heure   | 
+ | Créateur                      | Référence à l'utilisateur ayant créé ce dossier | UUID            | 
+
+## Fichier
+
+Un fichier représente un fichier ou un document.
+
+ | Attribut                      | Description                                            | Format          | 
+ | ----------------------------- | ------------------------------------------------------ | --------------- | 
+ | ID                            | Identifiant unique du fichier                          | UUID            | 
+ | Dossier                       | Référence au dossier dans lequel se trouve le fichier  | UUID            | 
+ | Nom                           | Nom du fichier                                         | Text            | 
+ | Type Mime                     | Type Mime représentant le format du fichier            | Text            | 
+ | Créateur                      | Référence à l'utilisateur ayant créé le fichier        | UUID            | 
+ | Date de création              | Date de création du fichier                            | Date et heure   | 
+ | Dernière date de modification | Dernière date de modification du fichier               | Date et heure   | 
+ | Revision                      | Numéro de révision du fichier                          | Nombre entier   | 
+ | Empreinte                     | Empreinte numérique représentant le contenu du fichier | Texte           | 
+ | Localisation | Emplacement physique où se trouve le contenu du fichier | Text |
+
+## Cas d'utilisation
+
+### Création d'objets
+
+#### Création d'un dossier
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire accède au dossier dans lequel il souhaite créer un dossier
+> 3. Le prestataire clique sur le bouton pour créer un dossier
+> 4. Le prestataire renseigne le nom et la description du dossier puis valide
+> 5. Le système crée le dossier et confirme la création au prestataire
+
+#### Téléversement d'un fichier
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire accède au dossier dans lequel il souhaite téléverser un fichier
+> 3. Le prestataire clique sur le bouton pour téléverser un fichier
+> 4. Le prestataire choisi un fichier et renseigne le nom et la description puis valide
+> 5. Le système téléverse le fichier dans le dossier et confirme l'ajout au prestataire
+
+#### Téléversement d'une nouvelle version d'un fichier
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire accède au dossier dans lequel il souhaite téléverser un fichier
+> 3. Le prestataire clique sur le bouton pour téléverser un fichier
+> 4. Le prestataire choisi un fichier et renseigne le nom et la description puis valide
+> 5. Le système téléverse le fichier dans le dossier. 
+> 6. Si le fichier existe déjà, le système propose d'annuler ou d'ajouter en tant que nouvelle révision.
+> 7. Le prestataire choisi d'annuler ou d'ajouter en tant que nouvelle révision.
+> 8. Le système agit en fonction du choix du prestataire. Soit en annulant soit en enregistrant une nouvelle révision 
+puis confirme l'action effectuée au prestataire
+
+### Consultation d'objets
+
+#### Lister les dossiers
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire navigue dans la hiérarchie des dossiers pour les voir
+
+#### Lister les fichiers
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire navigue dans la hiérarchie des dossiers pour accéder à celui voulu
+> 3. Le prestataire pour voir la liste des fichiers dans le dossier ouvert
+
+#### Télécharger un fichier
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire navigue dans la hiérarchie des dossiers pour accéder à celui voulu
+> 3. Le prestataire retrouve le fichier voulu en parcourant la liste
+> 4. Le prestataire clique sur le bouton pour télécharger le fichier
+
+#### Lister les dossiers
+
+> **Acteur principal:** Consommateur
+>
+> **Précondition:** Le Consommateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le Consommateur accède au cercle voulu
+> 2. Le Consommateur navigue dans la hiérarchie des dossiers pour les voir
+
+#### Lister les fichiers
+
+> **Acteur principal:** Consommateur
+>
+> **Précondition:** Le Consommateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le Consommateur accède au cercle voulu
+> 2. Le Consommateur navigue dans la hiérarchie des dossiers pour accéder à celui voulu
+> 3. Le Consommateur pour voir la liste des fichiers dans le dossier ouvert
+
+#### Télécharger un fichier
+
+> **Acteur principal:** Consommateur
+>
+> **Précondition:** Le Consommateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le Consommateur accède au cercle voulu
+> 2. Le Consommateur navigue dans la hiérarchie des dossiers pour accéder à celui voulu
+> 3. Le Consommateur retrouve le fichier voulu en parcourant la liste
+> 4. Le Consommateur clique sur le bouton pour télécharger le fichier
+
+### Archivage
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire navigue dans la hiérarchie des dossiers pour accéder à celui voulu
+> 3. Le prestataire retrouve le fichier voulu en parcourant la liste
+> 4. Le prestataire clique dessus pour afficher la page des détails
+> 5. Le prestataire clique sur le bouton archiver.
+> 6. Le système demande de confirmer l'action
+> 7. Le prestataire confirme ou annule l'archivage.
+> 8. Le système annule l'action ou archive le fichier selon le choix du prestataire
+puis confirme l'action au prestataire.
+>
+> **Remarques:** En archivant, aucune donnée n'est effacée mais le fichier n'est plus visible
+dans l'interface.
+
+# Notification
+
+Une notification permet d'informer un utilisateur qu'une action a été produite dans l'application.
+La notification se fait par l'envoi d'un EMail.
+
+Dans un premier temps, les utilisateurs reçoivent les notifications de bases, sans paramétrage.
+
+## Entités 
+
+| Attribut                         | Description                                               | Format          | 
+| -------------------------------- | --------------------------------------------------------- | --------------- | 
+| ID                               | Identifiant unique de la notification                     | UUID            | 
+| Date de création                 | Date de création de la notification                       | Date et heure   | 
+| Date d'exécution                 | Date désirée pour envoyer la notification.                | Date et heure   | 
+| Date de confirmation d'exécution | Date à laquelle la notification a été envoyée             | Date et heure   | 
+| Est notifié                      | Est-ce que la notification a été envoyée                  | Binaire         | 
+| Destinataire                     | Référence à l'utilisateur destinataire de la notification | UUID            | 
+| Template                         | Nom de la template à utiliser pour générer le contenu     | Texte           | 
+| Vecteurs (SMS, EMail, Push, ...) | Vecteur d'envoi                                           | Liste           | 
+| Contenu                          | Représentation des valeurs à appliquer dans la template   | JSON            | 
+
+## Cas d'utilisation
+
+### Journalisation des événements
+
+> **Acteur principal:** Système
+>
+> **Précondition:** Un utilisateur a réalisé une action
+>
+> **Scénario:**
+> 1. Le système écoute les actions réalisées par les utilisateurs
+> 2. Après chaque action effectuée, le système vérifie s'il doit envoyer une notification à un utilisateur, selon les paramètres.
+> 3. Si nécessaire, le système envoie la notification aux utilisateurs concernés
+>
+> **Remarques:** En cas de transaction en base de données, la demande de notification s'effectue en même temps. La notification peut avoir un délai.
+
+# Journal de bord
+
+Chaque action effectué dans l'application est consignée dans un journal de bord.
+
+Les événements dans ce journal doivent permettre un suivit précis de chacune des interactions dans l'application
+afin de pouvoir justifier en tout temps tous les changements d'état.
+
+## Entités
+
+### Événement
+
+| Attribut                | Description                                  | Format        |
+|-------------------------|----------------------------------------------|---------------|
+| ID                      | Identification unique de l'entrée du journal | UUID          |
+| Date de création        | Date et heure de l'événement                 | Date et heure |
+| Utilisateur             | Identifiant de l'utilisateur                 | UUID          |
+| Action                  | Nom de l'action                              | Text          |
+| Type d'objet primaire   | Type d'objet de départ ou primaire                          |  Text             |
+| Objet primaire          | Référence à l'objet de départ ou primaire                                             | Text              |
+| Type d'objet secondaire | Type d'objet de destination ou secondaire                                             |  Text             |
+| Objet secondaire        | Référence à l'objet de destination ou secondaire                                             |  Text             |
+| Message                 | Message explicatif de l'événement                                             |  Text             |
+
+## Cas d'utilisation
+
+### Journalisation des événements
+
+> **Acteur principal:** Système
+>
+> **Précondition:** Un utilisateur a réalisé une action
+>
+> **Scénario:**
+> 1. Le système écoute les actions réalisées par les utilisateurs
+> 2. Après chaque action effectuée, le système consigne l'événement dans le journal de bord
+>
+> **Remarques:** En cas de transaction en base de données, la journalisation s'effectue en même temps.
+
+### Consultation des événements
+
+> **Acteur principal:** Utilisateur
+>
+> **Précondition:** L'utilisateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. L'utilisateur accède depuis le menu au journal des événements
+> 2. L'utilisateur peut consulter l'ensemble des événements qui le concerne selon les rôles qui luis sont attribués
+
+# Glossaire
+
+| Terme        | Definition                                                                                                             | Terme technique | 
+ | ------------ | ---------------------------------------------------------------------------------------------------------------------- | --------------- | 
+ | Action       | Fonctionnalité que les utilisateurs peuvent effectuer                                                                  | Action          | 
+ | Attribution  | Rôle affecté à un utilisation                                                                                          | Attribution     | 
+ | Cercle       | Espace contenant des objets permettant à des utilisateurs de pouvoir effectuer des actions selon leurs rôles attribués | Circle          | 
+ | Compte       | L'ensemble des rôles et des données appartenant à un utilisateur                                                       | Account         | 
+ | Document     | Ressource numérique représentant un habituellement un document au format papier                                        | Document        | 
+ | Dossier      | Système hiérarchique permettant d'organiser et ranger les fichiers et documents                                        | Folder          | 
+ | Fichier      | Ressource contenant des données sous un format numérique                                                               | File            | 
+ | Journal      | Journal consignant tous les événements                                                                                 | Journal/Log     | 
+ | Notification | Information envoyé à un ou plusieurs utilisateurs via des moyens de communication externes (email, SMS, Push)          | Notification    | 
+ | Objet        | Élément pour lesquels s'applique une prestation. Par exemple: dossier, fichier, documents.                             | Object          | 
+ | Permission   | Autorisation à effectuer une action                                                                                    | Permission      | 
+ | Profile      | Données personnelles décrivant un utilisateur visible notamment dans la page de profile                                | Profil          | 
+ | Rôle         | Ensemble d'actions autorisées attribuable à un utilisateur pour effectuer sa mission                                   | Role            | 
+ | Utilisateur  | Personne physique ayant un accès et un ou plusieurs rôles à l'application pour effectuer des actions.                  | User            | 
+ | Événement    | Action effectuée à un moment précis                                                                                    | Event           | 
+ 
+# Cercle, Role and Permission
+
+Un cercle forme un espace contenant des objets et des documents pour lesquels des utilisateurs interagissent selon leurs rôles et leurs permissions.
+
+Les rôles et les permissions ne sont pas éditables dans un premier temps. Des rôles et permissions sont prédéfinis.
+
+## Entités
+
+
+### Cercle
+
+| Attribut        | Description                     | Format       | 
+| -----------     | -------------                   | --------     | 
+| ID              | Identifiant unique              | UUID         | 
+| Nom             | Nom du cercle                   | Text         | 
+| Description     | Description du cercle           | Text         | 
+| Date de création| Date de création du cercle      | Date et heure| 
+| Créateur        | Créateur (utilisateur du cercle)| UUID         | 
+
+
+### Role
+
+ | Attribut     | Description                | Format    | 
+ | -----------: | :------------------------: | :-------- |
+ | ID           | Identifiant unique du rôle | UUID      | 
+ | Nom          | Nom du rôle                | Text      | 
+ | Description  | Description du rôle        | Text      | 
+
+
+### Permission
+
+Une permission est un droit d’interagir avec l'application, ce qui signifie être autorisé à effectuer une action.
+
+| Attribut  | Description  | Format |
+|-----------|------------- |--------|
+| ID        | Identifiant unique de la permission | UUID | 
+| Rôle | Nom du rôle| Text |
+| Action | Identifiant unique de l'action | Text |
+
+### Attribution
+
+Un utilisateur se fait attribuer un rôle. L'utilisateur pourra effectuer les actions permises par cette attribution.
+
+ | Attribut    | Description                         | Format   | 
+ | ----------- | ----------------------------------- | -------- | 
+ | ID          | Identifiant unique de l'attribution | UUID     | 
+ | Utilisateur | Référence à l'utilisateur           | UUID     | 
+ | Rôle        | Référence au rôle                   | UUID     | 
+ | Cercle      | Référence au cercle                 | UUID     | 
+
+## Cas d'utilisation
+
+### Création d'un cercle
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** L'utilisateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au menu correspondant
+> 2. Le prestataire remplit les champs du formulaire et valide
+> 3. Le système crée le cercle et confirme à l'utilisateur
+
+### Attribution de rôles
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** L'utilisateur est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire ouvre les paramètres d'attribution des rôles
+> 3. Le prestataire ajoute un autre utilisateur dans la liste et choisi le rôle voulu et valide
+> 4. Le système attribue le rôle à l'utilisateur en question et confirme le changement dans l'interface
+
+
+### Révoquer l'attribution de rôles
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire ouvre les paramètres d'attribution des rôles
+> 3. Le prestataire enlève un ou plusieurs rôles à l'utilisateur ou enlève totalement l'utilisateur des attributions
+> 4. Le prestataire valide les changements
+> 5. Le système attribue le rôle à l'utilisateur en question et confirme le changement dans l'interface
+
+### Archivage d'un cercle
+
+> **Acteur principal:** Prestataire
+>
+> **Précondition:** Le prestataire est authentifié dans l'application
+>
+> **Scénario:**
+> 1. Le prestataire accède au cercle voulu
+> 2. Le prestataire accède aux paramètres du cercle
+> 3. Le prestataire demande l'archivage du cercle
+> 4. Le prestataire doit confirmer d'une action active (par exemple écrire un texte) l'archivage du cercle
+> 5. Le système procède à l'archivage du cercle.
+>
+> **Remarques:** Les données du cercle existent toujours mais ne sont plus visibles ni accessibles aux utilisateurs.

@@ -10,6 +10,7 @@ export const UserFactory = Factory.define(User, async ({ faker }) => {
     fullName: faker.internet.username(),
     email: faker.internet.email(),
     password: await hash.make('password123'),
+    isArchived: false,
   }
 })
   .relation('attributions', () => AttributionFactory)
