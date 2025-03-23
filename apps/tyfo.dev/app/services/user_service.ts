@@ -1,62 +1,40 @@
-import User from '#models/user'
+// services/user_service.ts
 import { inject } from '@adonisjs/core'
-import { Database } from '@adonisjs/lucid/database'
-import { UserServiceContract } from '#contracts/user_service_contract'
+import { UserRepositoryContract } from '#contracts/user_repository_contract'
+import User from '#models/user'
+import { RoleRepositoryContract } from '#contracts/role_repository_contract'
 
 @inject()
-export default class UserService implements UserServiceContract {
-  constructor(private db: Database) {}
+export default class UserService {
+  constructor(
+    private userRepository: UserRepositoryContract,
+    private roleRepository: RoleRepositoryContract
+  ) {}
 
-  /**
-   * Crée un nouvel utilisateur
-   */
   public async createUser(data: Partial<User>): Promise<User> {
-    return await this.db.transaction(async (trx) => {
-      const user = new User()
-      user.useTransaction(trx)
-      user.fill(data)
-      await user.save()
-      return user
-    })
+    return await this.userRepository.create(data)
   }
 
-  /**
-   * Met à jour un utilisateur
-   */
-  public async updateUser(userId: string, data: Partial<User>): Promise<User> {
-    const user = await User.findOrFail(userId)
-    user.merge(data)
-    await user.save()
-    return user
+  public async updateUser(userUuid: string, data: Partial<User>): Promise<User> {
+    return await this.userRepository.update(userUuid, data)
   }
 
-  /**
-   * Archive un utilisateur (désactivation)
-   */
-  public async archiveUser(userId: string): Promise<void> {
-    const user = await User.findOrFail(userId)
-    user.isArchived = true
-    await user.save()
+  public async archiveUser(userUuid: string): Promise<void> {
+    await this.userRepository.archive(userUuid)
   }
 
-  /**
-   * Récupère un utilisateur par son ID
-   */
-  public async getUserById(userId: string): Promise<User> {
-    const user = await User.find(userId)
+  public async getUserByUuid(userUuid: string): Promise<User> {
+    const user = await this.userRepository.findByUuid(userUuid)
     if (!user) throw new Error('Utilisateur non trouvé')
     return user
   }
 
-  /**
-   * Liste les utilisateurs avec filtres (ex: rôle, cercle, état)
-   */
   public async listUsers(filters: Record<string, any>): Promise<User[]> {
-    const query = User.query()
-
-    if (filters.role) query.where('role', filters.role)
-    if (filters.isArchived !== undefined) query.where('isArchived', filters.isArchived)
-
-    return await query.orderBy('createdAt', 'desc')
+    if (filters.role) {
+      const role = await this.roleRepository.findByName(filters.role)
+      if (!role) return []
+      return await this.userRepository.list({ roleId: role.id })
+    }
+    return await this.userRepository.list(filters)
   }
 }

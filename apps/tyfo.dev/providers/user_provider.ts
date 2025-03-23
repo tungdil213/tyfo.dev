@@ -1,14 +1,21 @@
-import UserService from '#services/user_service'
-import type { ApplicationService } from '@adonisjs/core/types'
-import { UserServiceContract } from '#contracts/user_service_contract'
+import FakeUserRepository from '#repositories/fake_user_repository'
+import UserRepository from '#repositories/user_repository'
+import logger from '@adonisjs/core/services/logger'
+import { ApplicationService } from '@adonisjs/core/types'
+import env from '#start/env'
 
 export default class UsersProvider {
   constructor(protected app: ApplicationService) {}
 
-  /**
-   * The container bindings have booted
-   */
-  async boot() {
-    this.app.container.bind('UserServiceContract', () => new UserService())
+  public async boot() {
+    this.app.container.singleton(UserRepository, () => {
+      if (env.get('NODE_ENV') === 'test') {
+        logger.info('Using FakeUserRepository for tests')
+        return new FakeUserRepository()
+      } else {
+        logger.info('Using UserRepository for production/development')
+        return new UserRepository()
+      }
+    })
   }
 }
