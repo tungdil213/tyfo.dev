@@ -3,7 +3,6 @@ import UserService from '#services/user_service'
 import FakeUserRepository from '#repositories/fake_user_repository'
 import { test } from '@japa/runner'
 
-import Role from '#models/role'
 import User from '#models/user'
 import FakeRoleRepository from '#repositories/fake_role_repository'
 

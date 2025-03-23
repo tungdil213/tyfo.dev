@@ -34,4 +34,10 @@ export default class UsersController {
     const users = await this.userService.listUsers(filters)
     return users
   }
+
+  public async destroy({ params }: HttpContext) {
+    const userId = params.id
+    await this.userService.archiveUser(userId)
+    return { message: 'User archived successfully' }
+  }
 }
