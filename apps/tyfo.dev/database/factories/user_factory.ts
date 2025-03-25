@@ -1,17 +1,17 @@
-import User from '#models/user'
 import Factory from '@adonisjs/lucid/factories'
+import User from '#models/user'
 import hash from '@adonisjs/core/services/hash'
 import { randomUUID } from 'node:crypto'
-import { AttributionFactory } from '#factories/attribution_factory'
+import { RoleFactory } from './role_factory.js'
 
-export const UserFactory = Factory.define(User, async ({ faker }) => {
-  return {
-    uuid: randomUUID(),
-    fullName: faker.internet.username(),
-    email: faker.internet.email(),
-    password: await hash.make('password123'),
-    isArchived: false,
-  }
-})
-  .relation('attributions', () => AttributionFactory)
+const passwordHash = await hash.make('password123')
+
+export const UserFactory = Factory.define(User, async ({ faker }) => ({
+  uuid: randomUUID(),
+  fullName: faker.person.fullName(),
+  email: faker.internet.email().toLowerCase(),
+  password: passwordHash,
+  deletedAt: null,
+}))
+  .relation('roles', () => RoleFactory)
   .build()

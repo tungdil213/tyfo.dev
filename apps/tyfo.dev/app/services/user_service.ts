@@ -19,8 +19,8 @@ export default class UserService {
     return await this.userRepository.update(userUuid, data)
   }
 
-  public async archiveUser(userUuid: string): Promise<void> {
-    await this.userRepository.archive(userUuid)
+  public async deleteUser(userUuid: string): Promise<void> {
+    await this.userRepository.delete(userUuid)
   }
 
   public async getUserByUuid(userUuid: string): Promise<User> {

@@ -1,15 +1,15 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
-import Attribution from './attribution.js'
+import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Circle from './circle.js'
 import Folder from './folder.js'
 import Log from './log.js'
 import Notification from './notification.js'
 import ObjectModel from './object.js'
+import Role from './role.js'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -29,9 +29,6 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare email: string
 
-  @column()
-  declare isArchived: boolean
-
   @column({ serializeAs: null })
   declare password: string
 
@@ -41,6 +38,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column.dateTime({ columnName: 'updated_at', autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 
+  @column.dateTime({ columnName: 'deleted_at', serializeAs: null })
+  declare deletedAt: DateTime | null
+
   // Relations
   @hasMany(() => Circle)
   declare circles: HasMany<typeof Circle>
@@ -48,8 +48,10 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @hasMany(() => Folder)
   declare folders: HasMany<typeof Folder>
 
-  @hasMany(() => Attribution)
-  declare attributions: HasMany<typeof Attribution>
+  @manyToMany(() => Role, {
+    pivotTable: 'attributions',
+  })
+  declare roles: ManyToMany<typeof Role>
 
   @hasMany(() => Log)
   declare logs: HasMany<typeof Log>

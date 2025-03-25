@@ -1,7 +1,6 @@
 import Circle from '#models/circle'
 import Factory from '@adonisjs/lucid/factories'
 import { randomUUID } from 'node:crypto'
-
 import { UserFactory } from '#factories/user_factory'
 
 export const CircleFactory = Factory.define(Circle, async ({ faker }) => {

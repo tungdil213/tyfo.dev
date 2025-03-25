@@ -12,7 +12,7 @@ export default class extends BaseSchema {
       table.string('email', 254).notNullable().unique()
       table.string('password').notNullable()
 
-      table.boolean('is_archived').defaultTo(false)
+      table.timestamp('deleted_at', { useTz: true }).nullable()
 
       table.timestamp('created_at', { useTz: true }).defaultTo(this.now()).notNullable()
       table.timestamp('updated_at', { useTz: true }).nullable()

@@ -8,7 +8,6 @@
 */
 
 const UsersController = () => import('#controllers/user_controller')
-import { Route } from '@adonisjs/core/http'
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 

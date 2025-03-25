@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('folder_id')
+      table.increments('folder_id').notNullable()
       table.uuid('folder_uuid').notNullable().unique()
 
       table

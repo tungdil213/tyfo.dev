@@ -6,10 +6,13 @@ import { UserFactory } from '#factories/user_factory'
 import { DateTime } from 'luxon'
 
 export const NotificationFactory = Factory.define(Notification, async ({ faker }) => {
+  const executionTime = DateTime.fromJSDate(faker.date.future())
   return {
     uuid: randomUUID(),
-    executionTime: DateTime.fromJSDate(faker.date.future()),
-    confirmationTime: DateTime.fromJSDate(faker.date.future()),
+    executionTime,
+    confirmationTime: faker.datatype.boolean()
+      ? executionTime.plus({ minutes: faker.number.int({ min: 1, max: 120 }) })
+      : null,
     isNotified: faker.datatype.boolean(),
     template: 'file_downloaded',
     vector: JSON.stringify(['email']),

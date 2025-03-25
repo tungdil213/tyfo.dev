@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('notification_id')
+      table.increments('notification_id').notNullable()
       table.uuid('notification_uuid').notNullable().unique()
 
       table.timestamp('execution_time', { useTz: true }).notNullable()

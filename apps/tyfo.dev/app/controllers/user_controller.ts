@@ -17,10 +17,10 @@ export default class UsersController {
     return user
   }
 
-  public async archive({ params }: HttpContext) {
+  public async delete({ params }: HttpContext) {
     const userId = params.id
-    await this.userService.archiveUser(userId)
-    return { message: 'User archived successfully' }
+    await this.userService.deleteUser(userId)
+    return { message: 'User deleted successfully' }
   }
 
   public async show({ params }: HttpContext) {
@@ -30,14 +30,8 @@ export default class UsersController {
   }
 
   public async index({ request }: HttpContext) {
-    const filters = request.only(['role', 'isArchived'])
+    const filters = request.only(['role', 'deletedAt'])
     const users = await this.userService.listUsers(filters)
     return users
-  }
-
-  public async destroy({ params }: HttpContext) {
-    const userId = params.id
-    await this.userService.archiveUser(userId)
-    return { message: 'User archived successfully' }
   }
 }

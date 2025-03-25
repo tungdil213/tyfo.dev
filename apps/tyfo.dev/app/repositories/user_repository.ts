@@ -1,10 +1,15 @@
 // repositories/user_repository.ts
 import User from '#models/user'
 import { UserRepositoryContract } from '#contracts/user_repository_contract'
+import { DateTime } from 'luxon'
+import { randomUUID } from 'node:crypto'
 
 export default class UserRepository implements UserRepositoryContract {
   public async create(data: Partial<User>): Promise<User> {
-    return await User.create(data)
+    return await User.create({
+      uuid: data.uuid || randomUUID(), // 🔥 Assurer que `uuid` est toujours défini
+      ...data,
+    })
   }
 
   public async update(userUuid: string, data: Partial<User>): Promise<User> {
@@ -14,9 +19,9 @@ export default class UserRepository implements UserRepositoryContract {
     return user
   }
 
-  public async archive(userUuid: string): Promise<void> {
+  public async delete(userUuid: string): Promise<void> {
     const user = await User.findByOrFail('uuid', userUuid)
-    user.isArchived = true
+    user.deletedAt = DateTime.now()
     await user.save()
   }
 
@@ -29,22 +34,19 @@ export default class UserRepository implements UserRepositoryContract {
   }
 
   public async list(filters: Record<string, any>): Promise<User[]> {
-    const query = User.query().preload('attributions', (attributionsQuery) => {
-      attributionsQuery.preload('role')
-    })
+    let query = User.query().whereNull('deleted_at')
 
-    if (filters.role) {
-      query.whereHas('attributions', (attributionsQuery) => {
-        attributionsQuery.whereHas('role', (roleQuery) => {
-          roleQuery.where('name', filters.role) // Suppose que le rôle a une colonne `name`
-        })
+    if (filters.roleId) {
+      query = query.whereHas('roles', (roleQuery) => {
+        roleQuery.where('roles.id', filters.roleId)
       })
     }
 
-    if (filters.isArchived !== undefined) {
-      query.where('isArchived', filters.isArchived)
-    }
-
     return await query.orderBy('createdAt', 'desc')
+  }
+
+  public async assignRole(userUuid: string, roleId: string): Promise<void> {
+    const user = await User.findByOrFail('uuid', userUuid)
+    await user.related('roles').attach([roleId])
   }
 }
