@@ -1,6 +1,6 @@
 import { inject } from '@adonisjs/core'
-import { NotificationRepositoryContract } from '#contracts/notification_repository_contract'
-import { NotificationServiceContract } from '#contracts/notification_service_contract'
+import { NotificationRepositoryContract } from '#repositories/contracts/notification_repository_contract'
+import { NotificationServiceContract } from '#services/contracts/notification_service_contract'
 import { DateTime } from 'luxon'
 
 @inject()
@@ -16,7 +16,7 @@ export default class NotificationService implements NotificationServiceContract 
       userId,
       template,
       content: JSON.stringify(data),
-      isNotified: false, // Non lu par défaut
+      isNotified: false,
       executionTime: DateTime.now(),
     })
   }
@@ -25,14 +25,14 @@ export default class NotificationService implements NotificationServiceContract 
     userId: number,
     template: string,
     data: Record<string, any>,
-    date: Date
+    date: DateTime
   ): Promise<void> {
     await this.notificationRepository.create({
       userId,
       template,
       content: JSON.stringify(data),
       isNotified: false,
-      executionTime: DateTime.now(),
+      executionTime: date,
     })
   }
 

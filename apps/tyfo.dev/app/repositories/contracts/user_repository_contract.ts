@@ -1,4 +1,5 @@
 // contracts/user_repository_contract.ts
+import Role from '#models/role'
 import User from '#models/user'
 
 export abstract class UserRepositoryContract {
@@ -9,4 +10,7 @@ export abstract class UserRepositoryContract {
   abstract findByEmail(email: string): Promise<User | null>
   abstract list(filters: Record<string, any>): Promise<User[]>
   abstract assignRole(userUuid: string, roleId: string): Promise<void>
+  abstract removeRole(userUuid: string, roleUuid: string): Promise<void>
+  abstract listRolesByUser(userUuid: string): Promise<Role[]>
+  abstract listRolesByCircle(circleUuid: string): Promise<Role[]>
 }

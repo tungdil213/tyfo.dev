@@ -1,6 +1,6 @@
 import { inject } from '@adonisjs/core'
 import Folder from '#models/folder'
-import { FolderRepositoryContract } from '#contracts/folder_repository_contract'
+import { FolderRepositoryContract } from '#repositories/contracts/folder_repository_contract'
 
 @inject()
 export default class FolderService {

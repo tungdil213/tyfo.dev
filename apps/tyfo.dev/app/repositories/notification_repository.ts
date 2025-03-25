@@ -1,5 +1,5 @@
 import Notification from '#models/notification'
-import { NotificationRepositoryContract } from '#contracts/notification_repository_contract'
+import { NotificationRepositoryContract } from '#repositories/contracts/notification_repository_contract'
 
 export default class NotificationRepository implements NotificationRepositoryContract {
   public async create(data: Partial<Notification>): Promise<Notification> {

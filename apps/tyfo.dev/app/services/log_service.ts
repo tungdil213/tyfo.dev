@@ -1,6 +1,6 @@
 import { inject } from '@adonisjs/core'
 import Log from '#models/log'
-import { LogRepositoryContract } from '#contracts/log_repository_contract'
+import { LogRepositoryContract } from '#repositories/contracts/log_repository_contract'
 
 @inject()
 export default class LogService {

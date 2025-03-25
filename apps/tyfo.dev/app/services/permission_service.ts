@@ -1,6 +1,6 @@
 import { inject } from '@adonisjs/core'
 import Permission from '#models/permission'
-import { PermissionRepositoryContract } from '#contracts/permission_repository_contract'
+import { PermissionRepositoryContract } from '#repositories/contracts/permission_repository_contract'
 
 @inject()
 export default class PermissionService {

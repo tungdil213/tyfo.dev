@@ -1,6 +1,6 @@
 import { inject } from '@adonisjs/core'
 import Circle from '#models/circle'
-import { CircleRepositoryContract } from '#contracts/circle_repository_contract'
+import { CircleRepositoryContract } from '#repositories/contracts/circle_repository_contract'
 
 @inject()
 export default class CircleService {

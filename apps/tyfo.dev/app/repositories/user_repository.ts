@@ -1,6 +1,7 @@
 // repositories/user_repository.ts
+import Role from '#models/role'
 import User from '#models/user'
-import { UserRepositoryContract } from '#contracts/user_repository_contract'
+import { UserRepositoryContract } from '#repositories/contracts/user_repository_contract'
 import { DateTime } from 'luxon'
 import { randomUUID } from 'node:crypto'
 
@@ -45,8 +46,20 @@ export default class UserRepository implements UserRepositoryContract {
     return await query.orderBy('createdAt', 'desc')
   }
 
+  public async listRolesByUser(userUuid: string): Promise<Role[]> {
+    return Role.query().where('user_uuid', userUuid)
+  }
+  public async listRolesByCircle(circleUuid: string): Promise<Role[]> {
+    return Role.query().where('circle_uuid', circleUuid)
+  }
+
   public async assignRole(userUuid: string, roleId: string): Promise<void> {
     const user = await User.findByOrFail('uuid', userUuid)
     await user.related('roles').attach([roleId])
+  }
+
+  public async removeRole(userUuid: string, roleUuid: string): Promise<void> {
+    const user = await User.findByOrFail('uuid', userUuid)
+    await user.related('roles').detach([roleUuid])
   }
 }

@@ -1,5 +1,5 @@
 import Log from '#models/log'
-import { LogRepositoryContract } from '#contracts/log_repository_contract'
+import { LogRepositoryContract } from '#repositories/contracts/log_repository_contract'
 
 export default class LogRepository implements LogRepositoryContract {
   public async create(data: Partial<Log>): Promise<Log> {
