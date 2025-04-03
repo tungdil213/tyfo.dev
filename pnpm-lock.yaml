@@ -121,6 +121,9 @@ importers:
       '@adonisjs/cors':
         specifier: ^2.2.1
         version: 2.2.1(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))
+      '@adonisjs/drive':
+        specifier: ^3.4.1
+        version: 3.4.1(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))
       '@adonisjs/inertia':
         specifier: ^3.1.0
         version: 3.1.0(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))(@adonisjs/session@7.5.1(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))(edge.js@6.2.1))(@adonisjs/vite@4.0.0(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))(@adonisjs/shield@8.1.2(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))(@adonisjs/session@7.5.1(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))(edge.js@6.2.1))(edge.js@6.2.1))(edge.js@6.2.1)(vite@6.1.1(@types/node@22.13.5)(jiti@2.4.2)(lightningcss@1.29.1)(yaml@2.7.0)))(edge.js@6.2.1)
@@ -203,6 +206,9 @@ importers:
       '@japa/runner':
         specifier: ^4.2.0
         version: 4.2.0
+      '@poppinss/file-generator':
+        specifier: ^2.1.4
+        version: 2.1.4
       '@swc/core':
         specifier: 1.10.17
         version: 1.10.17
@@ -510,6 +516,22 @@ packages:
     engines: {node: '>=18.16.0'}
     peerDependencies:
       '@adonisjs/core': ^6.2.0
+
+  '@adonisjs/drive@3.4.1':
+    resolution: {integrity: sha512-oDYY4wJ7wDMlO4E+dZPYBu+T3Av7Mj+JL8+J33qgyxtiJylnZgoZDuRfFjZZix/bFNNuWX2sLwTMnyiDcK+YsA==}
+    engines: {node: '>=20.6.0'}
+    peerDependencies:
+      '@adonisjs/core': ^6.2.0
+      '@aws-sdk/client-s3': ^3.577.0
+      '@aws-sdk/s3-request-presigner': ^3.577.0
+      '@google-cloud/storage': ^7.10.2
+    peerDependenciesMeta:
+      '@aws-sdk/client-s3':
+        optional: true
+      '@aws-sdk/s3-request-presigner':
+        optional: true
+      '@google-cloud/storage':
+        optional: true
 
   '@adonisjs/encryption@6.0.2':
     resolution: {integrity: sha512-37XqVPsZi6zXMbC0Me1/qlcTP0uE+KAtYOFx7D7Tvtz377NL/6gqxqgpW/BopgOSD+CVDXjzO/Wx3M2UrbkJRQ==}
@@ -1176,6 +1198,7 @@ packages:
   '@faker-js/faker@9.5.0':
     resolution: {integrity: sha512-3qbjLv+fzuuCg3umxc9/7YjrEXNaKwHgmig949nfyaTx8eL4FAsvFbu+1JcFUj1YAXofhaDn6JdEUBTYuk0Ssw==}
     engines: {node: '>=18.0.0', npm: '>=9.0.0'}
+    deprecated: Please update to a newer version
 
   '@floating-ui/core@1.6.9':
     resolution: {integrity: sha512-uMXCuQ3BItDUbAMhIXw7UPXRfAlOAvZzdK9BWpE60MCn+Svt3aLn9jsPTi/WNGlRUu2uI0v5S7JiIUsbsvh3fw==}
@@ -1491,6 +1514,10 @@ packages:
   '@poppinss/exception@1.2.0':
     resolution: {integrity: sha512-WLneXKQYNClhaMXccO111VQmZahSrcSRDaHRbV6KL5R4pTvK87fMn/MXLUcvOjk0X5dTHDPKF61tM7j826wrjQ==}
     engines: {node: '>=20.6.0'}
+
+  '@poppinss/file-generator@2.1.4':
+    resolution: {integrity: sha512-lJbh7xhPMwOOSMcnqrxbV4Sg0uO3G/Th9Cy8/0p5XPoXqD/hNOFYq/2/G4Cm/GGSv7BEQ1lDHzg1bS5dqSalEg==}
+    engines: {node: '>=18.16.0'}
 
   '@poppinss/hooks@7.2.5':
     resolution: {integrity: sha512-mxORKQ5CFzQNi6yK3zwCGWfGS507w23IhV3kFq42QzWlv/vpvf4aMJDbtfMCR5p52ghVoe0d1wmgp77ak2ORhQ==}
@@ -4544,6 +4571,21 @@ packages:
   flattie@1.1.1:
     resolution: {integrity: sha512-9UbaD6XdAL97+k/n+N7JwX46K/M6Zc6KcFYskrYL8wbBV/Uyk0CTAMY0VT+qiK5PM7AIc9aTWYtq65U7T+aCNQ==}
     engines: {node: '>=8'}
+
+  flydrive@1.1.1:
+    resolution: {integrity: sha512-bcMD0eOoveOlPTvnPtjaOjq+7FidhiqldP6gSg9SQUqQc9pKSEQ/D3Xq0BDEElOLddaFKoaTUSgV2aX6kF+Ihw==}
+    engines: {node: '>=20.6.0'}
+    peerDependencies:
+      '@aws-sdk/client-s3': ^3.577.0
+      '@aws-sdk/s3-request-presigner': ^3.577.0
+      '@google-cloud/storage': ^7.10.2
+    peerDependenciesMeta:
+      '@aws-sdk/client-s3':
+        optional: true
+      '@aws-sdk/s3-request-presigner':
+        optional: true
+      '@google-cloud/storage':
+        optional: true
 
   follow-redirects@1.15.9:
     resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
@@ -7635,6 +7677,11 @@ snapshots:
     dependencies:
       '@adonisjs/core': 6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1)
 
+  '@adonisjs/drive@3.4.1(@adonisjs/core@6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1))':
+    dependencies:
+      '@adonisjs/core': 6.17.2(@adonisjs/assembler@7.8.2(typescript@5.7.3))(@vinejs/vine@3.0.0)(edge.js@6.2.1)
+      flydrive: 1.1.1
+
   '@adonisjs/encryption@6.0.2':
     dependencies:
       '@poppinss/utils': 6.9.2
@@ -8598,6 +8645,10 @@ snapshots:
       supports-color: 10.0.0
 
   '@poppinss/exception@1.2.0': {}
+
+  '@poppinss/file-generator@2.1.4':
+    dependencies:
+      bytes: 3.1.2
 
   '@poppinss/hooks@7.2.5': {}
 
@@ -12052,6 +12103,13 @@ snapshots:
   flatted@3.3.3: {}
 
   flattie@1.1.1: {}
+
+  flydrive@1.1.1:
+    dependencies:
+      '@humanwhocodes/retry': 0.4.2
+      '@poppinss/utils': 6.9.2
+      etag: 1.8.1
+      mime-types: 2.1.35
 
   follow-redirects@1.15.9: {}
 

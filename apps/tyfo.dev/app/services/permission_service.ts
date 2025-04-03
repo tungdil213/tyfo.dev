@@ -1,9 +1,10 @@
 import { inject } from '@adonisjs/core'
 import Permission from '#models/permission'
-import { PermissionRepositoryContract } from '#contracts/permission_repository_contract'
+import { PermissionRepositoryContract } from '#repositories/contracts/permission_repository_contract'
+import { PermissionServiceContract } from '#services/contracts/permission_service_contract'
 
 @inject()
-export default class PermissionService {
+export default class PermissionService implements PermissionServiceContract {
   constructor(private permissionRepository: PermissionRepositoryContract) {}
 
   public async createPermission(data: Partial<Permission>): Promise<Permission> {

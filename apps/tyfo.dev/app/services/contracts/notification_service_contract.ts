@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon'
+
 export interface NotificationServiceContract {
   /**
    * Envoie immédiatement une notification à un utilisateur.
@@ -11,7 +13,7 @@ export interface NotificationServiceContract {
     userId: number,
     template: string,
     data: Record<string, any>,
-    date: Date
+    date: DateTime
   ): Promise<void>
 
   /**

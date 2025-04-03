@@ -1,9 +1,11 @@
+// models/attribution.ts
 import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Circle from '#models/circle'
 import Role from '#models/role'
 import User from '#models/user'
+import { randomUUID } from 'node:crypto'
 
 export default class Attribution extends BaseModel {
   @column({ columnName: 'attribution_id', isPrimary: true })
@@ -19,7 +21,7 @@ export default class Attribution extends BaseModel {
   declare roleId: number
 
   @column({ columnName: 'circle_id' })
-  declare circleId: number
+  declare circleId: number | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -36,4 +38,15 @@ export default class Attribution extends BaseModel {
 
   @belongsTo(() => Circle)
   declare circle: BelongsTo<typeof Circle>
+
+  // Hook pour générer automatiquement un UUID lors de la création
+  public static boot() {
+    super.boot()
+
+    this.before('create', (attribution) => {
+      if (!attribution.$dirty.uuid) {
+        attribution.uuid = randomUUID()
+      }
+    })
+  }
 }
