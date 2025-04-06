@@ -1,13 +1,12 @@
+import Attribution from '#models/attribution'
 import Circle from '#models/circle'
+import User from '#models/user'
+import { BaseRepositoryContract } from '#repositories/contracts/base_repository_contract'
 
-export abstract class CircleRepositoryContract {
-  abstract create(data: Partial<Circle>): Promise<Circle>
-  abstract update(circleUuid: string, data: Partial<Circle>): Promise<Circle>
-  abstract delete(circleUuid: string): Promise<void>
-  abstract findByUuid(circleUuid: string): Promise<Circle | null>
+export abstract class CircleRepositoryContract extends BaseRepositoryContract<Circle> {
   abstract findByName(name: string): Promise<Circle | null>
-  abstract list(): Promise<Circle[]>
-  abstract listByUser(userId: number): Promise<Circle[]>
-  abstract listByRole(roleUuid: string): Promise<Circle[]>
-  abstract listByUserAndRole(userId: number, roleUuid: string): Promise<Circle[]>
+  abstract getCircleUsers(circleId: number): Promise<User[]>
+  abstract getCircleAttributions(circleId: number): Promise<Attribution[]>
+  abstract archiveCircle(id: number): Promise<Circle>
+  abstract restoreCircle(id: number): Promise<Circle>
 }

@@ -1,6 +1,6 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Role from '#models/role'
-import { randomUUID } from 'node:crypto'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class RoleSeeder extends BaseSeeder {
   public async run() {
@@ -14,7 +14,7 @@ export default class RoleSeeder extends BaseSeeder {
 
     await Promise.all(
       roles.map(async (role) => {
-        await Role.updateOrCreate({ name: role.name }, { uuid: randomUUID(), ...role })
+        await Role.updateOrCreate({ name: role.name }, { uuid: generateUuid(), ...role })
       })
     )
 

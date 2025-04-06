@@ -1,32 +1,64 @@
 import Permission from '#models/permission'
+import { BaseRepositoryContract } from '#repositories/contracts/base_repository_contract'
 
-export abstract class PermissionRepositoryContract {
+export abstract class PermissionRepositoryContract extends BaseRepositoryContract<Permission> {
   /**
-   * Assigne une permission à un rôle donné.
-   * @param roleUuid UUID du rôle
-   * @param permission Nom de la permission
+   * Trouve une permission par son action
+   * @param action Le nom de l'action
+   * @returns La permission correspondante
    */
-  abstract assignPermission(roleUuid: string, permission: string): Promise<void>
-
-  /**
-   * Supprime une permission d'un rôle donné.
-   * @param roleUuid UUID du rôle
-   * @param permission Nom de la permission
-   */
-  abstract removePermission(roleUuid: string, permission: string): Promise<void>
+  abstract findByAction(action: string): Promise<Permission | null>
 
   /**
-   * Vérifie si un utilisateur possède une permission donnée.
-   * @param userUuid UUID de l'utilisateur
-   * @param permission Nom de la permission
-   * @returns `true` si l'utilisateur possède la permission, `false` sinon.
+   * Récupère toutes les permissions attribuées à un rôle
+   * @param roleId Identifiant du rôle
+   * @returns Liste des permissions du rôle
    */
-  abstract checkUserPermission(userUuid: string, permission: string): Promise<boolean>
+  abstract getPermissionsForRole(roleId: number): Promise<Permission[]>
 
   /**
-   * Récupère toutes les permissions associées à un rôle donné.
-   * @param roleUuid UUID du rôle
-   * @returns Liste des permissions du rôle.
+   * Ajoute une permission à un rôle
+   * @param roleId Identifiant du rôle
+   * @param permissionId Identifiant de la permission
+   * @returns void
    */
-  abstract getRolePermissions(roleUuid: string): Promise<string[]>
+  abstract addPermissionToRole(roleId: number, permissionId: number): Promise<void>
+
+  /**
+   * Retire une permission d'un rôle
+   * @param roleId Identifiant du rôle
+   * @param permissionId Identifiant de la permission
+   * @returns void
+   */
+  abstract removePermissionFromRole(roleId: number, permissionId: number): Promise<void>
+
+  /**
+   * Vérifie si un rôle possède une permission spécifique
+   * @param roleId Identifiant du rôle
+   * @param permissionId Identifiant de la permission
+   * @returns true si le rôle a la permission, false sinon
+   */
+  abstract roleHasPermission(roleId: number, permissionId: number): Promise<boolean>
+
+  /**
+   * Vérifie si un utilisateur a une permission spécifique dans un cercle donné
+   * via ses attributions de rôles
+   * @param userId Identifiant de l'utilisateur
+   * @param permissionAction Nom de l'action de permission
+   * @param circleId Identifiant du cercle
+   * @returns true si l'utilisateur a la permission, false sinon
+   */
+  abstract userHasPermission(
+    userId: number,
+    permissionAction: string,
+    circleId: number
+  ): Promise<boolean>
+
+  /**
+   * Obtient toutes les permissions d'un utilisateur dans un cercle
+   * @param userId Identifiant de l'utilisateur
+   * @param circleId Identifiant du cercle
+   * @returns Liste des permissions
+   */
+  abstract getUserPermissions(userId: number, circleId: number): Promise<Permission[]>
 }

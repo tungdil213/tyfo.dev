@@ -1,7 +1,11 @@
 import Permission from '#models/permission'
 import { PermissionRepositoryContract } from '#repositories/contracts/permission_repository_contract'
+import Repository from './base/repository.js'
 
-export default class PermissionRepository implements PermissionRepositoryContract {
+export default class PermissionRepository
+  extends Repository<Permission>
+  implements PermissionRepositoryContract
+{
   public async assignPermission(roleUuid: string, permission: string): Promise<void> {
     await Permission.create({ uuid: roleUuid, action: permission })
   }

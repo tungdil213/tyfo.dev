@@ -1,8 +1,11 @@
 import Folder from '#models/folder'
 import { FolderRepositoryContract } from '#repositories/contracts/folder_repository_contract'
-import { DateTime } from 'luxon'
+import Repository from './base/repository.js'
 
-export default class FolderRepository implements FolderRepositoryContract {
+export default class FolderRepository
+  extends Repository<Folder>
+  implements FolderRepositoryContract
+{
   async listByCircleUuid(circleUuid: string): Promise<Folder[]> {
     return await Folder.query().where('circle_uuid', circleUuid)
   }
@@ -59,13 +62,6 @@ export default class FolderRepository implements FolderRepositoryContract {
     return await Folder.create(data)
   }
 
-  public async update(folderUuid: string, data: Partial<Folder>): Promise<Folder> {
-    return await Folder.query()
-      .where('uuid', folderUuid)
-      .update({ ...data, updated_at: DateTime.now() })
-      .firstOrFail()
-  }
-
   public async findByUuid(folderUuid: string): Promise<Folder | null> {
     return await Folder.findBy('uuid', folderUuid)
   }
@@ -84,9 +80,5 @@ export default class FolderRepository implements FolderRepositoryContract {
 
   public async listByCircleAndUser(circleUuid: string, userId: number): Promise<Folder[]> {
     return await Folder.query().where('circle_uuid', circleUuid).where('user_id', userId)
-  }
-
-  public async delete(folderUuid: string): Promise<void> {
-    await Folder.query().where('uuid', folderUuid).delete()
   }
 }

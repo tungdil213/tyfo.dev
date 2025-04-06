@@ -1,8 +1,9 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, column, manyToMany } from '@adonisjs/lucid/orm'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import Permission from '#models/permission'
 import User from '#models/user'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class Role extends BaseModel {
   @column({ columnName: 'role_id', isPrimary: true })
@@ -33,4 +34,9 @@ export default class Role extends BaseModel {
     pivotRelatedForeignKey: 'permission_id',
   })
   declare permissions: ManyToMany<typeof Permission>
+
+  @beforeCreate()
+  static generateUuid(role: Role) {
+    role.uuid = generateUuid()
+  }
 }

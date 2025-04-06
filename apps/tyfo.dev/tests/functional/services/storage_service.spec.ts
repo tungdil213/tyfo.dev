@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import ObjectRepository from '#repositories/object_repository'
 import env from '#start/env'
 import app from '@adonisjs/core/services/app'
+import db from '@adonisjs/lucid/services/db'
 
 async function createMockMultipartFile() {
   const CUSTOM_TMP_DIR = join(app.tmpPath(), env.get('TEST_TMP_DIR'))
@@ -61,10 +62,12 @@ test.group('StorageService', async (group) => {
     fakeDisk = drive.fake()
 
     service = new StorageService(new FakeObjectRepository(), fakeDisk)
+    await db.beginGlobalTransaction()
   })
 
-  group.each.teardown(() => {
+  group.each.teardown(async () => {
     drive.restore()
+    await db.rollbackGlobalTransaction()
   })
 
   test('uploadFile should upload and store a file', async ({ assert }) => {

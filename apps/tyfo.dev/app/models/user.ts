@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Circle from './circle.js'
@@ -10,6 +10,8 @@ import Log from './log.js'
 import Notification from './notification.js'
 import ObjectModel from './object.js'
 import Role from './role.js'
+import Attribution from './attribution.js'
+import { generateUuid } from '#utils/uuid_helper'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -50,6 +52,10 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @manyToMany(() => Role, {
     pivotTable: 'attributions',
+    pivotColumns: ['circle_id', 'attribution_uuid'],
+    pivotForeignKey: 'user_id',
+    pivotRelatedForeignKey: 'role_id',
+    pivotTimestamps: true,
   })
   declare roles: ManyToMany<typeof Role>
 
@@ -61,4 +67,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @hasMany(() => ObjectModel)
   declare objects: HasMany<typeof ObjectModel>
+
+  @beforeCreate()
+  static generateUuid(user: User) {
+    user.uuid = generateUuid()
+  }
 }

@@ -10,6 +10,7 @@ export default class extends BaseSchema {
 
       table.string('name').notNullable()
       table.text('description').notNullable()
+      table.timestamp('archived_at', { useTz: true }).defaultTo(null).nullable()
 
       table
         .integer('user_id')

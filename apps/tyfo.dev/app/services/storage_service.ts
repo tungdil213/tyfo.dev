@@ -1,5 +1,5 @@
 import drive from '@adonisjs/drive/services/main'
-import { createHash, randomUUID } from 'node:crypto'
+import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { StorageContract } from '#services/contracts/storage_contract'
 import env from '#start/env'
@@ -8,6 +8,7 @@ import { MultipartFile } from '@adonisjs/core/bodyparser'
 import { inject } from '@adonisjs/core'
 import ObjectRepository from '#repositories/object_repository'
 import ObjectModel from '#models/object'
+import { generateUuid } from '#utils/uuid_helper'
 
 @inject()
 export default class StorageService implements StorageContract {
@@ -81,7 +82,7 @@ export default class StorageService implements StorageContract {
       const revision = await this.objectRepository.getRevision(folderId, filename)
 
       return await this.objectRepository.create({
-        uuid: randomUUID(),
+        uuid: generateUuid(),
         userId,
         folderId,
         name: filename,

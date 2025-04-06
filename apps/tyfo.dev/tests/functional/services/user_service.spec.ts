@@ -2,22 +2,27 @@
 import { test } from '@japa/runner'
 import db from '@adonisjs/lucid/services/db'
 
-import UserService from '#services/user_service'
 import UserRepository from '#repositories/user_repository'
 import User from '#models/user'
 import { UserFactory } from '#factories/user_factory'
 import { RoleFactory } from '#factories/role_factory'
-import app from '@adonisjs/core/services/app'
+import { CircleFactory } from '#factories/circle_factory'
+import { UserService } from '#services/user_service'
+import { LogService } from '#services/log_service'
+import LogRepository from '#repositories/log_repository'
 
-test.group('UserService', (group) => {
+test.group('UserService', async (group) => {
   let service: UserService
   let userRepository: UserRepository
 
+  group.setup(async () => {
+    userRepository = new UserRepository()
+    const logService = new LogService(new LogRepository())
+    service = new UserService(userRepository, logService)
+  })
+
   group.each.setup(async () => {
     await db.beginGlobalTransaction()
-
-    userRepository = new UserRepository()
-    service = await app.container.make(UserService)
   })
 
   group.each.teardown(async () => {
@@ -35,7 +40,7 @@ test.group('UserService', (group) => {
     }
 
     // Act
-    const user = await service.createUser(userData)
+    const user = await service.create(userData)
 
     // Assert
     assert.exists(user.uuid, "L'UUID de l'utilisateur devrait être généré")
@@ -52,20 +57,20 @@ test.group('UserService', (group) => {
     const user = await UserFactory.create()
 
     // Act
-    const foundUser = await service.getUserByUuid(user.uuid)
+    const foundUser = await service.findByUuid(user.uuid)
 
     // Assert
     assert.exists(foundUser)
-    assert.equal(foundUser.uuid, user.uuid)
-    assert.equal(foundUser.email, user.email)
-    assert.equal(foundUser.fullName, user.fullName)
+    assert.equal(foundUser?.uuid, user.uuid)
+    assert.equal(foundUser?.email, user.email)
+    assert.equal(foundUser?.fullName, user.fullName)
   })
 
   test('getUserByUuid - devrait lever une erreur si utilisateur non trouvé', async ({ assert }) => {
     // Act & Assert
     await assert.rejects(
-      () => service.getUserByUuid('non-existent-uuid'),
-      /Utilisateur avec UUID non-existent-uuid non trouvé/
+      () => service.findByUuidOrFail('non-existent-uuid'),
+      "La ressource User avec l'identifiant non-existent-uuid n'a pas été trouvée"
     )
   })
 
@@ -80,7 +85,7 @@ test.group('UserService', (group) => {
     }
 
     // Act
-    const updatedUser = await service.updateUser(user.uuid, updateData)
+    const updatedUser = await service.update(user.uuid, updateData)
 
     // Assert
     assert.equal(updatedUser.fullName, updateData.fullName)
@@ -99,7 +104,7 @@ test.group('UserService', (group) => {
     const user = await UserFactory.create()
 
     // Act
-    await service.deleteUser(user.uuid)
+    await service.delete(user.uuid)
 
     // Assert
     const deletedUser = await User.find(user.id)
@@ -117,37 +122,26 @@ test.group('UserService', (group) => {
     await UserFactory.merge({ email: targetEmail }).create()
 
     // Act
-    const users = await service.listUsers({ email: targetEmail })
+    const user = await service.findByEmail(targetEmail)
 
     // Assert
-    assert.equal(users.length, 1)
-    assert.equal(users[0].email, targetEmail)
-  })
-
-  test('listUsers - devrait filtrer les utilisateurs par critères', async ({ assert }) => {
-    // Arrange
-    const targetEmail = 'special.user@example.com'
-    await UserFactory.createMany(5)
-    await UserFactory.create({ email: targetEmail })
-
-    // Act
-    const users = await service.listUsers({ email: targetEmail })
-
-    // Assert
-    assert.equal(users.length, 1)
-    assert.equal(users[0].email, targetEmail)
+    assert.exists(user)
+    assert.equal(user?.email, targetEmail)
   })
 
   test('assignRole - devrait attribuer un rôle à un utilisateur', async ({ assert }) => {
     // Arrange
     const user = await UserFactory.create()
     const role = await RoleFactory.create()
+    const circle = await CircleFactory.merge({
+      userId: user.id,
+    }).create()
 
     // Act
-    await service.assignRole(user.uuid, role.uuid)
+    await service.assignRole(user.uuid, role.uuid, circle.uuid)
 
     // Assert
-    const userRoles = await service.listRolesByUser(user.uuid)
+    const userRoles = await service.getUserRoles(user.uuid)
     assert.equal(userRoles.length, 1)
     assert.equal(userRoles[0].uuid, role.uuid)
   })
@@ -156,12 +150,16 @@ test.group('UserService', (group) => {
     // Arrange
     const user = await UserFactory.create()
     const role = await RoleFactory.create()
+    const circle = await CircleFactory.merge({
+      userId: user.id,
+    }).create()
 
     // Attribuer d'abord le rôle
-    await service.assignRole(user.uuid, role.uuid)
+    await service.assignRole(user.uuid, role.uuid, circle.uuid)
 
     // Vérifier que le rôle est bien attribué
     let userRoles = await service.listRolesByUser(user.uuid)
+
     assert.equal(userRoles.length, 1)
 
     // Act
@@ -178,9 +176,12 @@ test.group('UserService', (group) => {
     // Arrange
     const user = await UserFactory.create()
     const roles = await RoleFactory.createMany(3)
+    const circle = await CircleFactory.merge({
+      userId: user.id,
+    }).create()
 
     for (const role of roles) {
-      await service.assignRole(user.uuid, role.uuid)
+      await service.assignRole(user.uuid, role.uuid, circle.uuid)
     }
 
     // Act

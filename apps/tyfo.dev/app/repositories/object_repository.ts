@@ -3,9 +3,13 @@ import { inject } from '@adonisjs/core'
 import { ObjectRepositoryContract } from '#repositories/contracts/object_model_repository_contract'
 import ObjectModel from '#models/object'
 import NotFoundException from '#exceptions/not_found_exception'
+import Repository from './base/repository.js'
 
 @inject()
-export default class ObjectRepository implements ObjectRepositoryContract {
+export default class ObjectRepository
+  extends Repository<ObjectModel>
+  implements ObjectRepositoryContract
+{
   /**
    * Create a new object
    */

@@ -1,10 +1,11 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import ObjectModel from '#models/object'
 import Circle from '#models/circle'
 import User from '#models/user'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class Folder extends BaseModel {
   @column({ columnName: 'folder_id', isPrimary: true })
@@ -43,4 +44,9 @@ export default class Folder extends BaseModel {
 
   @hasMany(() => ObjectModel)
   declare objects: HasMany<typeof ObjectModel>
+
+  @beforeCreate()
+  static generateUuid(folder: Folder) {
+    folder.uuid = generateUuid()
+  }
 }

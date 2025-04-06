@@ -4,7 +4,7 @@ import User from '#models/user'
 import Circle from '#models/circle'
 import Permission from '#models/permission'
 import Attribution from '#models/attribution'
-import { randomUUID } from 'node:crypto'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class AttributionSeeder extends BaseSeeder {
   public async run() {
@@ -30,7 +30,7 @@ export default class AttributionSeeder extends BaseSeeder {
 
         await Attribution.updateOrCreate(
           { userId: user.id, roleId: randomRole.id, circleId: randomCircle.id },
-          { uuid: randomUUID() }
+          { uuid: generateUuid() }
         )
 
         console.log(
@@ -72,7 +72,7 @@ export default class AttributionSeeder extends BaseSeeder {
         await role.related('permissions').attach(
           permissionsToAssign.reduce<Record<number, { role_permission_uuid: string }>>(
             (acc, permission) => {
-              acc[permission.id] = { role_permission_uuid: randomUUID() }
+              acc[permission.id] = { role_permission_uuid: generateUuid() }
               return acc
             },
             {}

@@ -1,6 +1,6 @@
 import Factory from '@adonisjs/lucid/factories'
 import Permission from '#models/permission'
-import { randomUUID } from 'node:crypto'
+import { generateUuid } from '#utils/uuid_helper'
 
 const actions = [
   'CREATE_CIRCLE',
@@ -16,6 +16,6 @@ const actions = [
 ]
 
 export const PermissionFactory = Factory.define(Permission, async () => ({
-  uuid: randomUUID(),
+  uuid: generateUuid(),
   action: actions.pop() || 'DEFAULT_ACTION', // Évite les doublons
 })).build()

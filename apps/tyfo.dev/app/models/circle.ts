@@ -1,9 +1,10 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Folder from '#models/folder'
 import User from '#models/user'
 import Attribution from './attribution.js'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class Circle extends BaseModel {
   @column({ columnName: 'circle_id', isPrimary: true })
@@ -21,6 +22,9 @@ export default class Circle extends BaseModel {
   @column()
   declare userId: number
 
+  @column.dateTime({ columnName: 'archived_at' })
+  declare archivedAt: DateTime | null
+
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare createdAt: DateTime
 
@@ -36,4 +40,9 @@ export default class Circle extends BaseModel {
 
   @hasMany(() => Attribution)
   declare attributions: HasMany<typeof Attribution>
+
+  @beforeCreate()
+  static generateUuid(circle: Circle) {
+    circle.uuid = generateUuid()
+  }
 }

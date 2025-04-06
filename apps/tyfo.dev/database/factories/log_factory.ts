@@ -1,11 +1,11 @@
 import Factory from '@adonisjs/lucid/factories'
 import Log from '#models/log'
 import { UserFactory } from '#factories/user_factory'
-import { randomUUID } from 'node:crypto'
+import { generateUuid } from '#utils/uuid_helper'
 
 export const LogFactory = Factory.define(Log, async ({ faker }) => {
   return {
-    uuid: randomUUID(),
+    uuid: generateUuid(),
     action: faker.helpers.arrayElement(['UPLOAD_FILE', 'DOWNLOAD_FILE', 'DELETE_FILE']),
     primaryType: 'Object',
     primaryObject: faker.string.uuid(),

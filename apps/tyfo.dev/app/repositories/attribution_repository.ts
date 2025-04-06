@@ -2,106 +2,90 @@
 import { inject } from '@adonisjs/core'
 import { AttributionRepositoryContract } from '#repositories/contracts/attribution_repository_contract'
 import Attribution from '#models/attribution'
+import Repository from './base/repository.js'
+import Circle from '#models/circle'
+import Role from '#models/role'
+import User from '#models/user'
 
 @inject()
-export default class AttributionRepository implements AttributionRepositoryContract {
-  /**
-   * Create a new attribution
-   */
-  public async create(data: Partial<Attribution>): Promise<Attribution> {
-    return await Attribution.create(data)
+export default class AttributionRepository
+  extends Repository<Attribution>
+  implements AttributionRepositoryContract
+{
+  constructor() {
+    super(Attribution)
   }
 
-  /**
-   * Find an attribution by UUID
-   */
-  public async findByUuid(uuid: string): Promise<Attribution | null> {
-    return await Attribution.query().where('uuid', uuid).first()
+  public async getUserAttributions(userId: number): Promise<Attribution[]> {
+    return await Attribution.query().where('user_id', userId)
   }
 
-  /**
-   * Find an attribution by the combination of user, role and circle
-   */
-  public async findByUserRoleCircle(
+  public async getCircleAttributions(circleId: number): Promise<Attribution[]> {
+    return await Attribution.query().where('circle_id', circleId)
+  }
+
+  public async getRoleAttributions(roleId: number): Promise<Attribution[]> {
+    return await Attribution.query().where('role_id', roleId)
+  }
+
+  public async getUserAttributionsInCircle(
+    userId: number,
+    circleId: number
+  ): Promise<Attribution[]> {
+    return await Attribution.query().where('user_id', userId).where('circle_id', circleId)
+  }
+
+  public async createAttribution(
     userId: number,
     roleId: number,
     circleId: number
-  ): Promise<Attribution | null> {
-    return await Attribution.query()
+  ): Promise<Attribution> {
+    // Vérifier si l'attribution existe déjà
+    const existingAttribution = await Attribution.query()
       .where('user_id', userId)
       .where('role_id', roleId)
       .where('circle_id', circleId)
       .first()
-  }
 
-  /**
-   * List attributions for a specific user
-   */
-  public async listByUser(userId: number, filters?: Record<string, any>): Promise<Attribution[]> {
-    const query = Attribution.query().where('user_id', userId)
-
-    if (filters) {
-      if (filters.roleId) {
-        query.where('role_id', filters.roleId)
-      }
-
-      if (filters.circleId) {
-        query.where('circle_id', filters.circleId)
-      }
+    if (existingAttribution) {
+      return existingAttribution
     }
 
-    return await query.preload('role').preload('circle').exec()
+    // Vérifier si les entités existent
+    const [user, role, circle] = await Promise.all([
+      User.find(userId),
+      Role.find(roleId),
+      Circle.find(circleId),
+    ])
+
+    if (!user) throw new Error(`User with id ${userId} not found`)
+    if (!role) throw new Error(`Role with id ${roleId} not found`)
+    if (!circle) throw new Error(`Circle with id ${circleId} not found`)
+
+    // Créer l'attribution
+    return await Attribution.create({
+      userId,
+      roleId,
+      circleId,
+      uuid: crypto.randomUUID(),
+    })
   }
 
-  /**
-   * List attributions for a specific role
-   */
-  public async listByRole(roleId: number, filters?: Record<string, any>): Promise<Attribution[]> {
-    const query = Attribution.query().where('role_id', roleId)
-
-    if (filters) {
-      if (filters.userId) {
-        query.where('user_id', filters.userId)
-      }
-
-      if (filters.circleId) {
-        query.where('circle_id', filters.circleId)
-      }
-    }
-
-    return await query.preload('user').preload('circle').exec()
+  public async removeAttribution(userId: number, roleId: number, circleId: number): Promise<void> {
+    await Attribution.query()
+      .where('user_id', userId)
+      .where('role_id', roleId)
+      .where('circle_id', circleId)
+      .delete()
   }
 
-  /**
-   * List attributions for a specific circle
-   */
-  public async listByCircle(
-    circleId: number,
-    filters?: Record<string, any>
-  ): Promise<Attribution[]> {
-    const query = Attribution.query().where('circle_id', circleId)
+  public async hasAttribution(userId: number, roleId: number, circleId: number): Promise<boolean> {
+    const attribution = await Attribution.query()
+      .where('user_id', userId)
+      .where('role_id', roleId)
+      .where('circle_id', circleId)
+      .first()
 
-    if (filters) {
-      if (filters.userId) {
-        query.where('user_id', filters.userId)
-      }
-
-      if (filters.roleId) {
-        query.where('role_id', filters.roleId)
-      }
-    }
-
-    return await query.preload('user').preload('role').exec()
-  }
-
-  /**
-   * Remove an attribution by UUID
-   */
-  public async remove(uuid: string): Promise<void> {
-    const attribution = await this.findByUuid(uuid)
-    if (!attribution) {
-      return
-    }
-    await attribution.delete()
+    return !!attribution
   }
 }

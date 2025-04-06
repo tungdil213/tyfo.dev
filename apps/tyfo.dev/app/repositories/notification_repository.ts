@@ -1,7 +1,11 @@
 import Notification from '#models/notification'
 import { NotificationRepositoryContract } from '#repositories/contracts/notification_repository_contract'
+import Repository from './base/repository.js'
 
-export default class NotificationRepository implements NotificationRepositoryContract {
+export default class NotificationRepository
+  extends Repository<Notification>
+  implements NotificationRepositoryContract
+{
   public async create(data: Partial<Notification>): Promise<Notification> {
     return await Notification.create(data)
   }

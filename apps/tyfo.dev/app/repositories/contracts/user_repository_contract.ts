@@ -1,14 +1,14 @@
 import User from '#models/user'
 import Role from '#models/role'
+import Attribution from '#models/attribution'
+import Circle from '#models/circle'
+import { BaseRepositoryContract } from '#repositories/contracts/base_repository_contract'
 
-export interface UserRepositoryContract {
-  create(data: Partial<User>): Promise<User>
-  update(userUuid: string, data: Partial<User>): Promise<User>
-  delete(userUuid: string): Promise<void>
-  findByUuid(userUuid: string): Promise<User | null>
+export interface UserRepositoryContract extends BaseRepositoryContract<User> {
   findByEmail(email: string): Promise<User | null>
-  list(filters?: Record<string, any>): Promise<User[]>
-  listRolesByUser(userUuid: string): Promise<Role[]>
-  assignRole(userUuid: string, roleId: string): Promise<void>
-  removeRole(userUuid: string, roleUuid: string): Promise<void>
+  softDelete(uuid: string): Promise<void>
+  restore(uuid: string): Promise<User>
+  getUserRoles(uuid: string): Promise<Role[]>
+  getUserAttributions(uuid: string): Promise<Attribution[]>
+  getUserCircles(uuid: string): Promise<Circle[]>
 }

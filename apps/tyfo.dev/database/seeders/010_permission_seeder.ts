@@ -1,6 +1,6 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Permission from '#models/permission'
-import { randomUUID } from 'node:crypto'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class PermissionSeeder extends BaseSeeder {
   public async run() {
@@ -21,7 +21,7 @@ export default class PermissionSeeder extends BaseSeeder {
 
     await Promise.all(
       permissions.map(async (action) => {
-        await Permission.updateOrCreate({ action }, { uuid: randomUUID(), action })
+        await Permission.updateOrCreate({ action }, { uuid: generateUuid(), action })
       })
     )
 

@@ -1,18 +1,8 @@
+import Permission from '#models/permission'
 import Role from '#models/role'
+import { BaseRepositoryContract } from '#repositories/contracts/base_repository_contract'
 
-export abstract class RoleRepositoryContract {
-  abstract create(data: Partial<Role>): Promise<Role>
-  abstract update(roleUuid: string, data: Partial<Role>): Promise<Role>
-  abstract delete(roleUuid: string): Promise<void>
-  abstract findByUuid(roleUuid: string): Promise<Role | null>
+export abstract class RoleRepositoryContract extends BaseRepositoryContract<Role> {
   abstract findByName(name: string): Promise<Role | null>
-  abstract list(): Promise<Role[]>
-  abstract listByCircleUuid(circleUuid: string): Promise<Role[]>
-  abstract listByCircleAndUser(circleUuid: string, userId: number): Promise<Role[]>
-  abstract listByCircleAndRole(circleUuid: string, roleUuid: string): Promise<Role[]>
-  abstract listByCircleAndRoleAndUser(
-    circleUuid: string,
-    roleUuid: string,
-    userId: number
-  ): Promise<Role[]>
+  abstract getRolePermissions(roleId: number): Promise<Permission[]>
 }

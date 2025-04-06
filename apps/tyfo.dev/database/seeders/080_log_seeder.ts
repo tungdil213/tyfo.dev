@@ -1,7 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import { LogFactory } from '#factories/log_factory'
 import User from '#models/user'
-import { randomUUID } from 'node:crypto'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class LogSeeder extends BaseSeeder {
   public async run() {
@@ -21,7 +21,7 @@ export default class LogSeeder extends BaseSeeder {
       userId: users[Math.floor(Math.random() * users.length)].id,
       action: actions[Math.floor(Math.random() * actions.length)],
       primaryType: 'Object',
-      primaryObject: randomUUID(),
+      primaryObject: generateUuid(),
     }).createMany(30)
 
     console.log('✅ Logs créés avec succès !')

@@ -1,16 +1,12 @@
-// repositories/contracts/attribution_repository_contract.ts
 import Attribution from '#models/attribution'
+import { BaseRepositoryContract } from '#repositories/contracts/base_repository_contract'
 
-export interface AttributionRepositoryContract {
-  create(data: Partial<Attribution>): Promise<Attribution>
-  findByUuid(uuid: string): Promise<Attribution | null>
-  findByUserRoleCircle(
-    userId: number,
-    roleId: number,
-    circleId: number
-  ): Promise<Attribution | null>
-  listByUser(userId: number, filters?: Record<string, any>): Promise<Attribution[]>
-  listByRole(roleId: number, filters?: Record<string, any>): Promise<Attribution[]>
-  listByCircle(circleId: number, filters?: Record<string, any>): Promise<Attribution[]>
-  remove(uuid: string): Promise<void>
+export abstract class AttributionRepositoryContract extends BaseRepositoryContract<Attribution> {
+  abstract getUserAttributions(userId: number): Promise<Attribution[]>
+  abstract getCircleAttributions(circleId: number): Promise<Attribution[]>
+  abstract getRoleAttributions(roleId: number): Promise<Attribution[]>
+  abstract getUserAttributionsInCircle(userId: number, circleId: number): Promise<Attribution[]>
+  abstract createAttribution(userId: number, roleId: number, circleId: number): Promise<Attribution>
+  abstract removeAttribution(userId: number, roleId: number, circleId: number): Promise<void>
+  abstract hasAttribution(userId: number, roleId: number, circleId: number): Promise<boolean>
 }

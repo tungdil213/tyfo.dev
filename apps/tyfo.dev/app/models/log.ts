@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class Log extends BaseModel {
   @column({ columnName: 'log_id', isPrimary: true })
@@ -40,4 +41,9 @@ export default class Log extends BaseModel {
   // Relations
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
+
+  @beforeCreate()
+  static generateUuid(log: Log) {
+    log.uuid = generateUuid()
+  }
 }

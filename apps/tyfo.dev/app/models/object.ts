@@ -1,8 +1,9 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
 import Folder from '#models/folder'
 import User from '#models/user'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { generateUuid } from '#utils/uuid_helper'
 
 export default class ObjectModel extends BaseModel {
   static table = 'objects'
@@ -46,4 +47,9 @@ export default class ObjectModel extends BaseModel {
 
   @belongsTo(() => Folder)
   declare folder: BelongsTo<typeof Folder>
+
+  @beforeCreate()
+  static generateUuid(object: ObjectModel) {
+    object.uuid = generateUuid()
+  }
 }
