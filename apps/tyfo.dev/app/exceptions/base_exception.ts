@@ -1,4 +1,3 @@
-import { LogService } from '#services/log_service'
 import { Exception } from '@adonisjs/core/exceptions'
 import { HttpContext } from '@adonisjs/core/http'
 
@@ -22,31 +21,6 @@ export default class BaseException extends Exception {
         code: error.code,
       },
     })
-  }
-
-  /**
-   * Rapport sur l'exception (journalisation)
-   */
-  async report(error: this, ctx: HttpContext) {
-    try {
-      // Récupération du service de journalisation via le container
-      const logService = await container.make(LogService)
-
-      // Récupération de l'utilisateur si disponible
-      const user = ctx.auth?.user
-
-      // Journalisation de l'erreur
-      await logService.logError(
-        user || null,
-        error.code, // Type d'objet primaire
-        error.message, // Objet primaire
-        ctx.request.url(), // Type d'objet secondaire
-        this.sanitizeContext(error.context || {}) // Message
-      )
-    } catch (reportError) {
-      // Éviter les erreurs en cascade
-      console.error('Erreur lors de la journalisation:', reportError)
-    }
   }
 
   /**

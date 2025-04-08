@@ -6,7 +6,12 @@ export abstract class AttributionRepositoryContract extends BaseRepositoryContra
   abstract getCircleAttributions(circleId: number): Promise<Attribution[]>
   abstract getRoleAttributions(roleId: number): Promise<Attribution[]>
   abstract getUserAttributionsInCircle(userId: number, circleId: number): Promise<Attribution[]>
-  abstract createAttribution(userId: number, roleId: number, circleId: number): Promise<Attribution>
-  abstract removeAttribution(userId: number, roleId: number, circleId: number): Promise<void>
+
   abstract hasAttribution(userId: number, roleId: number, circleId: number): Promise<boolean>
+  abstract findByUserRoleAndCircle(
+    userId: number,
+    roleId: number,
+    circleId: number
+  ): Promise<Attribution | null>
+  abstract removeAttribution(userId: number, roleId: number, circleId: number): Promise<void>
 }

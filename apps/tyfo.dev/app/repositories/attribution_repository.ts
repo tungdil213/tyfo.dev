@@ -1,11 +1,8 @@
-// repositories/attribution_repository.ts
 import { inject } from '@adonisjs/core'
 import { AttributionRepositoryContract } from '#repositories/contracts/attribution_repository_contract'
 import Attribution from '#models/attribution'
-import Repository from './base/repository.js'
-import Circle from '#models/circle'
-import Role from '#models/role'
-import User from '#models/user'
+import Repository from '#repositories/base/repository'
+import { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 
 @inject()
 export default class AttributionRepository
@@ -17,58 +14,42 @@ export default class AttributionRepository
   }
 
   public async getUserAttributions(userId: number): Promise<Attribution[]> {
-    return await Attribution.query().where('user_id', userId)
+    return Attribution.query().where('user_id', userId)
   }
 
   public async getCircleAttributions(circleId: number): Promise<Attribution[]> {
-    return await Attribution.query().where('circle_id', circleId)
+    return Attribution.query().where('circle_id', circleId)
   }
 
   public async getRoleAttributions(roleId: number): Promise<Attribution[]> {
-    return await Attribution.query().where('role_id', roleId)
+    return Attribution.query().where('role_id', roleId)
   }
 
-  public async getUserAttributionsInCircle(
+  public async getRolesAttributionsInCircle(
     userId: number,
     circleId: number
   ): Promise<Attribution[]> {
-    return await Attribution.query().where('user_id', userId).where('circle_id', circleId)
+    return Attribution.query().where('user_id', userId).where('circle_id', circleId).preload('role')
+  }
+  public async getUsersAttributionsInCircle(circleId: number): Promise<Attribution[]> {
+    return Attribution.query().where('circle_id', circleId).preload('user')
   }
 
-  public async createAttribution(
+  public async hasAttribution(userId: number, roleId: number, circleId: number): Promise<boolean> {
+    const result = await this.findByUserRoleAndCircle(userId, roleId, circleId)
+    return !!result
+  }
+
+  public async findByUserRoleAndCircle(
     userId: number,
     roleId: number,
     circleId: number
-  ): Promise<Attribution> {
-    // Vérifier si l'attribution existe déjà
-    const existingAttribution = await Attribution.query()
+  ): Promise<Attribution | null> {
+    return Attribution.query()
       .where('user_id', userId)
       .where('role_id', roleId)
       .where('circle_id', circleId)
       .first()
-
-    if (existingAttribution) {
-      return existingAttribution
-    }
-
-    // Vérifier si les entités existent
-    const [user, role, circle] = await Promise.all([
-      User.find(userId),
-      Role.find(roleId),
-      Circle.find(circleId),
-    ])
-
-    if (!user) throw new Error(`User with id ${userId} not found`)
-    if (!role) throw new Error(`Role with id ${roleId} not found`)
-    if (!circle) throw new Error(`Circle with id ${circleId} not found`)
-
-    // Créer l'attribution
-    return await Attribution.create({
-      userId,
-      roleId,
-      circleId,
-      uuid: crypto.randomUUID(),
-    })
   }
 
   public async removeAttribution(userId: number, roleId: number, circleId: number): Promise<void> {
@@ -77,15 +58,5 @@ export default class AttributionRepository
       .where('role_id', roleId)
       .where('circle_id', circleId)
       .delete()
-  }
-
-  public async hasAttribution(userId: number, roleId: number, circleId: number): Promise<boolean> {
-    const attribution = await Attribution.query()
-      .where('user_id', userId)
-      .where('role_id', roleId)
-      .where('circle_id', circleId)
-      .first()
-
-    return !!attribution
   }
 }

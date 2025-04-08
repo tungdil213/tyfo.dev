@@ -1,12 +1,11 @@
 import { inject } from '@adonisjs/core'
-import Log from '#models/log'
 import { CreateLogParams } from '#services/contracts/log_service_contract'
 import LogRepository from '#repositories/log_repository'
 import User from '#models/user'
 import { generateUuid } from '#utils/uuid_helper'
 
 @inject()
-export class LogService {
+export default class LogService {
   constructor(private logRepository: LogRepository) {}
 
   /**

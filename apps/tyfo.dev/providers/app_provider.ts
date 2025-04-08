@@ -9,12 +9,12 @@ import RoleRepository from '#repositories/role_repository'
 import UserRepository from '#repositories/user_repository'
 import CircleService from '#services/circle_service'
 import FolderService from '#services/folder_service'
-import { LogService } from '#services/log_service'
+import LogService from '#services/log_service'
 import NotificationService from '#services/notification_service'
 import PermissionService from '#services/permission_service'
 import RoleService from '#services/role_service'
 import StorageService from '#services/storage_service'
-import { UserService } from '#services/user_service'
+import UserService from '#services/user_service'
 import { ApplicationService } from '@adonisjs/core/types'
 
 export default class AppProvider {
@@ -39,6 +39,7 @@ export default class AppProvider {
     this.registerRepository(FolderRepository, FolderRepository)
     this.registerRepository(CircleRepository, CircleRepository)
     this.registerRepository(AttributionRepository, AttributionRepository)
+
     this.registerRepository(StorageService, StorageService)
     this.registerRepository(UserService, UserService)
     this.registerRepository(RoleService, RoleService)

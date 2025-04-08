@@ -1,9 +1,7 @@
-// repositories/base/repository.ts
 import type { LucidModel, LucidRow, ModelAttributes } from '@adonisjs/lucid/types/model'
 import { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 
 import ResourceNotFoundException from '#exceptions/resource_not_found_exception'
-import console from 'node:console'
 
 export default abstract class Repository<T extends LucidRow> {
   protected model: LucidModel

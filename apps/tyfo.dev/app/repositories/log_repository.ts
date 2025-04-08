@@ -1,9 +1,15 @@
 import Log from '#models/log'
-import { LogRepositoryContract } from '#repositories/contracts/log_repository_contract'
 import { DateTime } from 'luxon'
+import { LogRepositoryContract } from '#repositories/contracts/log_repository_contract'
+import Repository from '#repositories/base/repository'
 
-export default class LogRepository implements LogRepositoryContract {
-  constructor() {}
+import { inject } from '@adonisjs/core'
+
+@inject()
+export default class LogRepository extends Repository<Log> implements LogRepositoryContract {
+  constructor() {
+    super(Log)
+  }
 
   public async findByUser(userId: number): Promise<Log[]> {
     return await Log.query().where('user_id', userId).orderBy('created_at', 'desc')
@@ -21,13 +27,12 @@ export default class LogRepository implements LogRepositoryContract {
   }
 
   public async findByDateRange(startDate: DateTime, endDate: DateTime): Promise<Log[]> {
-    // Convert to ISO string format and ensure it's not null
-    const start = startDate.isValid
-      ? startDate.toISO() || startDate.toFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ")
-      : startDate.toFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ")
-    const end = endDate.isValid
-      ? endDate.toISO() || endDate.toFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ")
-      : endDate.toFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZZ")
+    const start = startDate.isValid ? startDate.toISO() : null
+    const end = endDate.isValid ? endDate.toISO() : null
+
+    if (!start || !end) {
+      throw new Error('Invalid date range provided.')
+    }
 
     return await Log.query().whereBetween('created_at', [start, end]).orderBy('created_at', 'desc')
   }

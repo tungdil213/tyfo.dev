@@ -5,7 +5,7 @@ import Role from '#models/role'
 import User from '#models/user'
 import { UserRepositoryContract } from '#repositories/contracts/user_repository_contract'
 import BaseRepository from '#repositories/base/repository'
-import ResourceNotFoundException from '#exceptions/resource_not_found_exception'
+import { DateTime } from 'luxon'
 
 /**
  * Implémentation du repository pour la gestion des utilisateurs
@@ -14,8 +14,10 @@ export default class UserRepository extends BaseRepository<User> implements User
   constructor() {
     super(User)
   }
-  softDelete(uuid: string): Promise<void> {
-    throw new Error('Method not implemented.')
+  async softDelete(uuid: string): Promise<void> {
+    const user = await User.findByOrFail('uuid', uuid)
+    user.deletedAt = DateTime.now()
+    await user.save()
   }
   getAll(params?: any): Promise<User[]> {
     throw new Error('Method not implemented.')
@@ -23,8 +25,11 @@ export default class UserRepository extends BaseRepository<User> implements User
   findBy(key: string, value: any): Promise<User | null> {
     throw new Error('Method not implemented.')
   }
-  restore(uuid: string): Promise<User> {
-    throw new Error('Method not implemented.')
+  async restore(uuid: string): Promise<User> {
+    const user = await User.findByOrFail('uuid', uuid)
+    user.deletedAt = null
+    await user.save()
+    return user
   }
   getUserRoles(uuid: string): Promise<Role[]> {
     throw new Error('Method not implemented.')
