@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react'
-import { Button } from "@tyfo.dev/ui/primitives/button";
+import { Button } from '@tyfo.dev/ui/primitives/button'
+import React from 'react'
 
 export default function Home() {
   return (
@@ -24,12 +25,9 @@ export default function Home() {
 
         {/* Bento with documentation, Adocasts, packages and Discord */}
         <div className="isolate mt-10 max-w-screen-xl mx-auto px-16 xl:px-8 grid grid-cols-1 xl:grid-cols-2 xl:grid-rows-3 gap-8">
-        <Button
-          size="default"
-          variant="default"
-        >
-          Button
-        </Button>
+          <Button size="default" variant="default">
+            Button
+          </Button>
           <article className="row-span-3 relative p-6 shadow-sm hover:shadow border border-sand-7 hover:border-sand-8 rounded-2xl transition ease-in-out duration-700 group flex flex-col gap-8">
             <div className="relative opacity-80">
               <svg fill="none" viewBox="0 0 240 105">
