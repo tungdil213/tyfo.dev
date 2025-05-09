@@ -8,6 +8,8 @@
 */
 
 const UsersController = () => import('#controllers/user_controller')
+const FolderController = () => import('#controllers/folder_controller')
+
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
@@ -29,3 +31,12 @@ router
   .use([middleware.auth()])
 
 router.on('/').renderInertia('home')
+
+router.get('/about', () => {
+  return 'This is the about page.'
+})
+
+router
+  .group(() => {
+    router.get('/folders', [FolderController, 'show'])
+  })

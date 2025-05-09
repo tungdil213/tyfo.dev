@@ -16,7 +16,7 @@ export default class FolderService implements FolderServiceContract {
     throw new Error('Method not implemented.')
   }
   listFoldersByCircle(circleUuid: string): Promise<Folder[]> {
-    throw new Error('Method not implemented.')
+    return this.folderRepository.listByCircleUuid(circleUuid);
   }
   listFoldersByUserAndCircle(userUuid: string, circleUuid: string): Promise<Folder[]> {
     throw new Error('Method not implemented.')
