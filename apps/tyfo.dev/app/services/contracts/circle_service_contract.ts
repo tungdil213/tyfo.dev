@@ -2,7 +2,8 @@ import Circle from '#models/circle'
 
 export interface CircleServiceContract {
   createCircle(data: Partial<Circle>): Promise<Circle>
-  addUserToCircle(circleUuid: string, userUuid: string): Promise<void>
+  archiveCircle(circleUuid: string): Promise<Circle>
+  addUserToCircle(circleUuid: string, userUuid: string, roleUuid: string): Promise<void>
   removeUserFromCircle(circleUuid: string, userUuid: string): Promise<void>
   listCircles(): Promise<Circle[]>
   listCirclesByUser(userUuid: string): Promise<Circle[]>

@@ -94,8 +94,12 @@ test.group('UserService', (group) => {
     assert,
   }) => {
     const user = await UserFactory.create()
-    const role = await Role.create({ name: 'Editor' })
-    const circle = await Circle.create({ name: 'Project Circle' })
+    const role = await Role.create({ name: 'Editor', description: 'Can edit content' })
+    const circle = await Circle.create({
+      name: 'Project Circle',
+      description: 'A project circle',
+      userId: user.id,
+    })
 
     await service.assignRole(user.uuid, role.uuid, circle.uuid)
 
@@ -106,12 +110,16 @@ test.group('UserService', (group) => {
 
   test('removeRole - devrait retirer un rôle à un utilisateur', async ({ assert }) => {
     const user = await UserFactory.create()
-    const role = await Role.create({ name: 'Temporary' })
-    const circle = await Circle.create({ name: 'Temp Circle' })
+    const role = await Role.create({ name: 'Temporary', description: 'Temporary role' })
+    const circle = await Circle.create({
+      name: 'Temp Circle',
+      description: 'Temporary circle',
+      userId: user.id,
+    })
 
     // D'abord assigner le rôle
     await service.assignRole(user.uuid, role.uuid, circle.uuid)
-    
+
     // Puis le retirer
     await service.removeRole(user.uuid, role.uuid)
 
@@ -127,7 +135,7 @@ test.group('UserService', (group) => {
 
     // Récupérer les utilisateurs avec le nom 'Test User'
     const testUsers = await service.listUsers({ fullName: 'Test User' })
-    
+
     assert.equal(testUsers.length, 3)
     testUsers.forEach((user) => {
       assert.equal(user.fullName, 'Test User')
@@ -140,9 +148,13 @@ test.group('UserService', (group) => {
 
   test("listRolesByUser - devrait lister les rôles d'un utilisateur", async ({ assert }) => {
     const user = await UserFactory.create()
-    const role1 = await Role.create({ name: 'Role1' })
-    const role2 = await Role.create({ name: 'Role2' })
-    const circle = await Circle.create({ name: 'Test Circle' })
+    const role1 = await Role.create({ name: 'Role1', description: 'First role' })
+    const role2 = await Role.create({ name: 'Role2', description: 'Second role' })
+    const circle = await Circle.create({
+      name: 'Test Circle',
+      description: 'Test circle description',
+      userId: user.id,
+    })
     
     // Assigner deux rôles
     await service.assignRole(user.uuid, role1.uuid, circle.uuid)
@@ -195,9 +207,15 @@ test.group('UserService', (group) => {
 
   test("getUserRoles - devrait retourner les rôles d'un utilisateur", async ({ assert }) => {
     const user = await UserFactory.create()
-    const role = await Role.create({ name: 'Admin' }) // Ajouter un rôle ici
+    const role = await Role.create({ name: 'Admin', description: 'Administrator role' }) // Ajouter un rôle ici
+    // Créons un cercle auquel associer le rôle
+    const circle = await Circle.create({
+      name: 'Admin Circle',
+      description: 'Admin circle',
+      userId: user.id,
+    })
     // Simulez l'attribution d'un rôle, par exemple via un service d'attribution
-    await userRepository.assignRoleToUser(user.uuid, role.id)
+    await userRepository.assignRoleToUser(user.uuid, role.id, circle.id)
 
     const roles = await service.getUserRoles(user.uuid)
 
@@ -207,7 +225,11 @@ test.group('UserService', (group) => {
 
   test("getUserCircles - devrait retourner les cercles d'un utilisateur", async ({ assert }) => {
     const user = await UserFactory.create()
-    const circle = await Circle.create({ name: 'Circle A' })
+    const circle = await Circle.create({
+      name: 'Circle A',
+      description: 'Circle A description',
+      userId: user.id,
+    })
     await userRepository.attachUserToCircle(user.uuid, circle.id) // Simulez l'attachement d'un utilisateur à un cercle
 
     const circles = await service.getUserCircles(user.uuid)

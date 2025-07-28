@@ -95,8 +95,6 @@ export default class UserService extends BaseService<User, UserRepository>
       throw new NotFoundException(`User with UUID ${userUuid} not found`)
     }
 
-    // Pour les tests, nous simulons l'attribution d'un rôle
-    // Dans une implémentation réelle, cette logique serait dans le repository
     const role = await Role.findBy('uuid', roleUuid)
     const circle = await Circle.findBy('uuid', circleUuid)
     
@@ -104,9 +102,8 @@ export default class UserService extends BaseService<User, UserRepository>
       throw new NotFoundException('Role or circle not found')
     }
     
-    // Simulation de l'attribution pour les tests
-    // Cette partie serait normalement gérée par le repository ou un service d'attribution
-    console.log(`Role ${role.id} assigned to user ${user.id} in circle ${circle.id}`)
+    // Créer l'attribution en utilisant le repository
+    await this.repository.assignRoleToUser(userUuid, roleUuid, circleUuid)
   }
 
   /**
@@ -118,16 +115,14 @@ export default class UserService extends BaseService<User, UserRepository>
       throw new NotFoundException(`User with UUID ${userUuid} not found`)
     }
 
-    // Pour les tests, nous simulons la suppression d'un rôle
-    // Dans une implémentation réelle, cette logique serait dans le repository
     const role = await Role.findBy('uuid', roleUuid)
     
     if (!role) {
       throw new NotFoundException('Role not found')
     }
     
-    // Simulation de la suppression pour les tests
-    console.log(`Role ${role.id} removed from user ${user.id}`)
+    // Retirer le rôle en utilisant le repository
+    await this.repository.removeRoleFromUser(userUuid, roleUuid)
   }
 
   /**

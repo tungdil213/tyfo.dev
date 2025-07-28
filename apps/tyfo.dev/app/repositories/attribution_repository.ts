@@ -2,7 +2,6 @@ import { inject } from '@adonisjs/core'
 import { AttributionRepositoryContract } from '#repositories/contracts/attribution_repository_contract'
 import Attribution from '#models/attribution'
 import Repository from '#repositories/base/repository'
-import { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 
 @inject()
 export default class AttributionRepository
@@ -31,6 +30,13 @@ export default class AttributionRepository
   ): Promise<Attribution[]> {
     return Attribution.query().where('user_id', userId).where('circle_id', circleId).preload('role')
   }
+  public async getUserAttributionsInCircle(
+    userId: number,
+    circleId: number
+  ): Promise<Attribution[]> {
+    return Attribution.query().where('user_id', userId).where('circle_id', circleId)
+  }
+
   public async getUsersAttributionsInCircle(circleId: number): Promise<Attribution[]> {
     return Attribution.query().where('circle_id', circleId).preload('user')
   }

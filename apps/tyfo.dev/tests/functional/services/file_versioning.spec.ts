@@ -110,16 +110,33 @@ class TestObjectRepository extends ObjectRepository {
     return []
   }
 
-  override async update(uuid: string, _data: Partial<ObjectModel>): Promise<ObjectModel> {
-    const object = this.objects.find((obj) => obj.uuid === uuid) as unknown as ObjectModel
-    if (!object) {
-      throw new Error('Objet non trouvé')
-    }
-    return object
+  // Implémentation de la méthode list manquante
+  async list(): Promise<ObjectModel[]> {
+    return this.objects as unknown as ObjectModel[]
   }
 
-  override async remove(_uuid: string): Promise<void> {
-    // Ne fait rien en test
+  override async update(uuid: string, data: Partial<ObjectModel>): Promise<ObjectModel> {
+    const objectIndex = this.objects.findIndex((obj) => obj.uuid === uuid)
+    if (objectIndex === -1) {
+      throw new Error('Objet non trouvé')
+    }
+
+    // Mettre à jour l'objet avec les nouvelles données
+    this.objects[objectIndex] = {
+      ...this.objects[objectIndex],
+      ...data,
+      updatedAt: DateTime.now(),
+    }
+
+    return this.objects[objectIndex] as unknown as ObjectModel
+  }
+
+  override async remove(uuid: string): Promise<void> {
+    // Supprimer l'objet du tableau
+    const objectIndex = this.objects.findIndex((obj) => obj.uuid === uuid)
+    if (objectIndex !== -1) {
+      this.objects.splice(objectIndex, 1)
+    }
   }
 
   // Méthodes spécifiques pour les tests
@@ -357,7 +374,7 @@ test.group('FileVersioning', (group) => {
     assert.equal(movedObject.hash, initialObject.hash)
     assert.equal(movedObject.location, initialObject.location)
     assert.notEqual(movedObject.uuid, initialObject.uuid)
-    
+
     // Vérifier que l'objet d'origine n'est plus accessible
     const originalObject = await service['objectRepository'].findByUuid(initialObject.uuid)
     assert.isNull(originalObject)
