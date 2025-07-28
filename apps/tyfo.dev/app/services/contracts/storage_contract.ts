@@ -36,4 +36,49 @@ export abstract class StorageContract {
    * Génère une URL signée à durée limitée pour un fichier
    */
   abstract getSignedUrl(filePath: string, expirationInMinutes?: number): Promise<string>
+
+  /**
+   * Crée une nouvelle version d'un fichier existant
+   */
+  abstract createNewVersion(
+    file: MultipartFile,
+    objectUuid: string,
+    userId: number
+  ): Promise<ObjectModel>
+
+  /**
+   * Récupère l'historique des versions d'un fichier
+   */
+  abstract getFileVersions(objectUuid: string): Promise<ObjectModel[]>
+
+  /**
+   * Restaure une version antérieure d'un fichier comme version actuelle
+   */
+  abstract restoreVersion(versionUuid: string, userId: number): Promise<ObjectModel>
+
+  /**
+   * Met à jour les métadonnées d'un fichier
+   */
+  abstract updateMetadata(
+    objectUuid: string,
+    updates: Partial<Pick<ObjectModel, 'name' | 'mimeType'>>
+  ): Promise<ObjectModel>
+
+  /**
+   * Déplace un fichier d'un dossier à un autre
+   */
+  abstract moveFile(
+    objectUuid: string,
+    targetFolderId: number,
+    userId: number
+  ): Promise<ObjectModel>
+
+  /**
+   * Recherche des fichiers par métadonnées
+   */
+  abstract searchByMetadata(
+    criteria: Partial<Pick<ObjectModel, 'name' | 'mimeType'>>,
+    folderId?: number,
+    userId?: number
+  ): Promise<ObjectModel[]>
 }

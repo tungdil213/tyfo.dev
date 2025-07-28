@@ -3,8 +3,9 @@ import { BaseRepositoryContract } from '#repositories/contracts/base_repository_
 
 export abstract class ObjectRepositoryContract extends BaseRepositoryContract<ObjectModel> {
   abstract findByFolder(folderId: number): Promise<ObjectModel[]>
-  abstract findByHash(hash: string): Promise<ObjectModel[]>
+  abstract findByHash(hash: string): Promise<ObjectModel | null>
   abstract findByMimeType(mimeType: string): Promise<ObjectModel[]>
   abstract createRevision(objectId: number, data: Partial<ObjectModel>): Promise<ObjectModel>
   abstract getRevisions(objectId: number): Promise<ObjectModel[]>
+  abstract listRevisions(objectUuid: string): Promise<ObjectModel[]>
 }

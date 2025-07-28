@@ -50,10 +50,16 @@ export default class ObjectRepository
     page?: number,
     limit?: number
   ): Promise<ObjectModel[]> {
-    return await ObjectModel.query()
+    let query = ObjectModel.query()
       .where('folder_id', folderId)
       .orderBy('name', 'asc')
       .orderBy('revision', 'desc')
+
+    // Appliquer la pagination si spécifiée
+    if (page !== undefined && limit !== undefined) {
+      query = query.offset((page - 1) * limit).limit(limit)
+    }
+    return await query
   }
 
   /**
@@ -64,7 +70,11 @@ export default class ObjectRepository
     page: number = 1,
     limit: number = 20
   ): Promise<ObjectModel[]> {
-    return await ObjectModel.query().where('user_id', userId).orderBy('updated_at', 'desc')
+    return await ObjectModel.query()
+      .where('user_id', userId)
+      .orderBy('updated_at', 'desc')
+      .offset((page - 1) * limit)
+      .limit(limit)
   }
 
   /**
@@ -107,5 +117,84 @@ export default class ObjectRepository
       .first()
 
     return latestObject ? latestObject.revision + 1 : 1
+  }
+
+  /**
+   * List all revisions of a file by its UUID
+   */
+  public async listRevisions(objectUuid: string): Promise<ObjectModel[]> {
+    // Trouver l'objet de base
+    const object = await this.findByUuid(objectUuid)
+
+    if (!object) {
+      return []
+    }
+
+    // Récupérer toutes les versions du même fichier (même nom et dossier)
+    return await ObjectModel.query()
+      .where('folder_id', object.folderId)
+      .where('name', object.name)
+      .orderBy('revision', 'desc')
+  }
+
+  /**
+   * Implement getRevisions from contract (uses object ID instead of UUID)
+   */
+  public async getRevisions(objectId: number): Promise<ObjectModel[]> {
+    // Trouver l'objet de base par son ID
+    const object = await ObjectModel.find(objectId)
+
+    if (!object) {
+      return []
+    }
+
+    // Récupérer toutes les versions du même fichier
+    return await ObjectModel.query()
+      .where('folder_id', object.folderId)
+      .where('name', object.name)
+      .orderBy('revision', 'desc')
+  }
+
+  /**
+   * List all objects
+   */
+  public async list(): Promise<ObjectModel[]> {
+    return await ObjectModel.query().orderBy('updated_at', 'desc')
+  }
+
+  /**
+   * Find objects by folder (implements contract method)
+   */
+  public async findByFolder(folderId: number): Promise<ObjectModel[]> {
+    return await ObjectModel.query().where('folder_id', folderId).orderBy('name', 'asc')
+  }
+
+  /**
+   * Find objects by mime type (implements contract method)
+   */
+  public async findByMimeType(mimeType: string): Promise<ObjectModel[]> {
+    return await ObjectModel.query().where('mime_type', mimeType).orderBy('name', 'asc')
+  }
+
+  /**
+   * Create a revision of an existing object (implements contract method)
+   */
+  public async createRevision(objectId: number, data: Partial<ObjectModel>): Promise<ObjectModel> {
+    // Trouver l'objet de base
+    const object = await ObjectModel.find(objectId)
+
+    if (!object) {
+      throw new NotFoundException('Objet non trouvé')
+    }
+
+    // Créer une nouvelle version en utilisant les données existantes et les nouvelles données
+    const newRevision = await this.getRevision(object.folderId, object.name)
+
+    return await this.create({
+      ...object.toJSON(),
+      ...data,
+      id: undefined, // Ne pas copier l'ID pour créer un nouvel enregistrement
+      revision: newRevision,
+    })
   }
 }

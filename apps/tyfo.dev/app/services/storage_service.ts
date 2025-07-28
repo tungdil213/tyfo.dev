@@ -172,4 +172,221 @@ export default class StorageService implements StorageContract {
       throw new Error('Impossible de générer une URL signée.')
     }
   }
+
+  /**
+   * Crée une nouvelle version d'un fichier existant
+   */
+  async createNewVersion(
+    file: MultipartFile,
+    objectUuid: string,
+    userId: number
+  ): Promise<ObjectModel> {
+    this.#validateUploadedFile(file)
+
+    try {
+      // Récupérer l'objet existant
+      const existingObject = await this.objectRepository.findByUuid(objectUuid)
+
+      if (!existingObject) {
+        throw new Error(`Fichier avec l'UUID ${objectUuid} non trouvé`)
+      }
+
+      // Lire le contenu du nouveau fichier
+      const buffer = await readFile(file.tmpPath!)
+
+      // Téléverser le nouveau fichier
+      const { path, hash } = await this.uploadFile(buffer, file.clientName)
+
+      // Récupérer le numéro de révision suivant
+      const nextRevision = await this.objectRepository.getRevision(
+        existingObject.folderId,
+        existingObject.name
+      )
+
+      // Créer un nouvel objet avec la révision incrémentée
+      return await this.objectRepository.create({
+        uuid: generateUuid(),
+        userId,
+        folderId: existingObject.folderId,
+        name: existingObject.name,
+        mimeType: file.type || existingObject.mimeType,
+        revision: nextRevision,
+        hash,
+        location: path,
+      })
+    } catch (error) {
+      console.error("Erreur lors de la création d'une nouvelle version du fichier:", error)
+      throw new Error('Impossible de créer une nouvelle version du fichier.')
+    }
+  }
+
+  /**
+   * Récupère l'historique des versions d'un fichier
+   */
+  async getFileVersions(objectUuid: string): Promise<ObjectModel[]> {
+    try {
+      // Vérifier que l'objet existe
+      const object = await this.objectRepository.findByUuid(objectUuid)
+      if (!object) {
+        throw new Error(`Fichier avec l'UUID ${objectUuid} non trouvé`)
+      }
+
+      // Utiliser la méthode listRevisions du repository pour récupérer toutes les versions
+      // triées par numéro de révision (de la plus récente à la plus ancienne)
+      return await (this.objectRepository as any).listRevisions(objectUuid)
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'historique des versions:", error)
+      throw new Error("Impossible de récupérer l'historique des versions.")
+    }
+  }
+
+  /**
+   * Restaure une version antérieure d'un fichier comme version actuelle
+   */
+  async restoreVersion(versionUuid: string, userId: number): Promise<ObjectModel> {
+    try {
+      // Récupérer la version à restaurer
+      const versionToRestore = await this.objectRepository.findByUuid(versionUuid)
+      if (!versionToRestore) {
+        throw new Error(`Version avec l'UUID ${versionUuid} non trouvée`)
+      }
+
+      // Récupérer le numéro de révision suivant pour le fichier
+      const nextRevision = await this.objectRepository.getRevision(
+        versionToRestore.folderId,
+        versionToRestore.name
+      )
+
+      // Créer une nouvelle version basée sur l'ancienne version
+      return await this.objectRepository.create({
+        uuid: generateUuid(),
+        userId,
+        folderId: versionToRestore.folderId,
+        name: versionToRestore.name,
+        mimeType: versionToRestore.mimeType,
+        revision: nextRevision,
+        hash: versionToRestore.hash,
+        location: versionToRestore.location,
+      })
+    } catch (error) {
+      console.error("Erreur lors de la restauration d'une version:", error)
+      throw new Error('Impossible de restaurer la version du fichier.')
+    }
+  }
+
+  /**
+   * Met à jour les métadonnées d'un fichier sans créer de nouvelle version
+   */
+  async updateMetadata(
+    objectUuid: string,
+    updates: Partial<Pick<ObjectModel, 'name' | 'mimeType'>>
+  ): Promise<ObjectModel> {
+    try {
+      // Vérifier que l'objet existe
+      const existingObject = await this.objectRepository.findByUuid(objectUuid)
+      if (!existingObject) {
+        throw new Error(`Fichier avec l'UUID ${objectUuid} non trouvé`)
+      }
+
+      // Mettre à jour les métadonnées de l'objet en utilisant la méthode update du repository
+      // qui prend l'UUID et les données à mettre à jour
+      return await this.objectRepository.update(objectUuid, updates)
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des métadonnées du fichier:', error)
+      throw new Error('Impossible de mettre à jour les métadonnées du fichier.')
+    }
+  }
+
+  /**
+   * Déplace un fichier d'un dossier à un autre
+   */
+  async moveFile(objectUuid: string, targetFolderId: number, userId: number): Promise<ObjectModel> {
+    try {
+      // Vérifier que l'objet existe
+      const sourceObject = await this.objectRepository.findByUuid(objectUuid)
+      if (!sourceObject) {
+        throw new Error(`Fichier avec l'UUID ${objectUuid} non trouvé`)
+      }
+
+      // Vérifier que le dossier de destination est différent du dossier source
+      if (sourceObject.folderId === targetFolderId) {
+        // Si c'est le même dossier, retourner l'objet sans le modifier
+        return sourceObject
+      }
+
+      // Vérifier s'il existe déjà un fichier avec le même nom dans le dossier cible
+      const existingInTarget = await this.objectRepository.findByFolderAndName(
+        targetFolderId,
+        sourceObject.name
+      )
+
+      let revision = 1
+
+      // Si un fichier avec le même nom existe déjà dans le dossier cible,
+      // utiliser la révision suivante
+      if (existingInTarget) {
+        revision = existingInTarget.revision + 1
+      }
+
+      // Créer une nouvelle version du fichier dans le dossier cible
+      // en conservant les mêmes propriétés sauf le folderId et en générant un nouveau UUID
+      const movedObject = await this.objectRepository.create({
+        uuid: generateUuid(),
+        userId,
+        folderId: targetFolderId,
+        name: sourceObject.name,
+        mimeType: sourceObject.mimeType,
+        revision,
+        hash: sourceObject.hash,
+        location: sourceObject.location,
+      })
+
+      // Supprimer l'ancien objet
+      await this.objectRepository.remove(objectUuid)
+
+      return movedObject
+    } catch (error) {
+      console.error('Erreur lors du déplacement du fichier:', error)
+      throw new Error('Impossible de déplacer le fichier.')
+    }
+  }
+
+  /**
+   * Recherche des fichiers par métadonnées
+   */
+  async searchByMetadata(
+    criteria: Partial<Pick<ObjectModel, 'name' | 'mimeType'>>,
+    folderId?: number,
+    userId?: number
+  ): Promise<ObjectModel[]> {
+    try {
+      // Récupérer tous les objets qui correspondent aux critères
+      let objects = await this.objectRepository.list()
+
+      // Filtrer par nom (recherche partielle)
+      if (criteria.name !== undefined) {
+        objects = objects.filter((obj: ObjectModel) => obj.name.includes(criteria.name!))
+      }
+
+      // Filtrer par type MIME (correspondance exacte)
+      if (criteria.mimeType !== undefined) {
+        objects = objects.filter((obj: ObjectModel) => obj.mimeType === criteria.mimeType)
+      }
+
+      // Filtrer par dossier si spécifié
+      if (folderId !== undefined) {
+        objects = objects.filter((obj: ObjectModel) => obj.folderId === folderId)
+      }
+
+      // Filtrer par utilisateur si spécifié
+      if (userId !== undefined) {
+        objects = objects.filter((obj: ObjectModel) => obj.userId === userId)
+      }
+
+      return objects
+    } catch (error) {
+      console.error('Erreur lors de la recherche de fichiers:', error)
+      throw new Error('Impossible de rechercher les fichiers.')
+    }
+  }
 }

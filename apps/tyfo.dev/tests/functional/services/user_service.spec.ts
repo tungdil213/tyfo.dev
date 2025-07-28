@@ -25,6 +25,138 @@ test.group('UserService', (group) => {
     await db.rollbackGlobalTransaction()
   })
 
+  test('createUser - devrait créer un nouvel utilisateur', async ({ assert }) => {
+    const userData = {
+      email: 'new.user@example.com',
+      fullName: 'New User',
+      password: 'password123',
+    }
+
+    const createdUser = await service.createUser(userData)
+
+    assert.exists(createdUser)
+    assert.equal(createdUser.email, userData.email)
+    assert.equal(createdUser.fullName, userData.fullName)
+
+    // Vérifier que l'utilisateur a bien été créé en base
+    const foundUser = await userRepository.findByEmail(userData.email)
+    assert.exists(foundUser)
+  })
+
+  test('updateUser - devrait mettre à jour un utilisateur existant', async ({ assert }) => {
+    const user = await UserFactory.create()
+    const updateData = {
+      fullName: 'Updated Name',
+    }
+
+    const updatedUser = await service.updateUser(user.uuid, updateData)
+
+    assert.equal(updatedUser.fullName, updateData.fullName)
+    assert.equal(updatedUser.email, user.email) // Pas modifié
+
+    // Vérifier que les modifications sont bien en base
+    const foundUser = await userRepository.findByUuid(user.uuid)
+    assert.equal(foundUser?.fullName, updateData.fullName)
+  })
+
+  test('deleteUser - devrait supprimer définitivement un utilisateur', async ({ assert }) => {
+    const user = await UserFactory.create()
+
+    await service.deleteUser(user.uuid)
+
+    // Vérifier que l'utilisateur n'existe plus
+    const foundUser = await userRepository.findByUuid(user.uuid)
+    assert.isNull(foundUser)
+  })
+
+  test('getUserByUuid - devrait retourner un utilisateur par son UUID', async ({ assert }) => {
+    const user = await UserFactory.create()
+
+    const foundUser = await service.getUserByUuid(user.uuid)
+
+    assert.exists(foundUser)
+    assert.equal(foundUser.uuid, user.uuid)
+    assert.equal(foundUser.email, user.email)
+  })
+
+  test("getUserByUuid - devrait lancer une erreur si l'utilisateur n'existe pas", async ({
+    assert,
+  }) => {
+    try {
+      await service.getUserByUuid('non-existent-uuid')
+      assert.fail('La méthode aurait dû lancer une erreur')
+    } catch (error) {
+      assert.exists(error)
+    }
+  })
+
+  test('assignRole - devrait assigner un rôle à un utilisateur dans un cercle', async ({
+    assert,
+  }) => {
+    const user = await UserFactory.create()
+    const role = await Role.create({ name: 'Editor' })
+    const circle = await Circle.create({ name: 'Project Circle' })
+
+    await service.assignRole(user.uuid, role.uuid, circle.uuid)
+
+    // Vérifier que le rôle a été assigné
+    const userRoles = await service.getUserRoles(user.uuid)
+    assert.isTrue(userRoles.some((r) => r.id === role.id))
+  })
+
+  test('removeRole - devrait retirer un rôle à un utilisateur', async ({ assert }) => {
+    const user = await UserFactory.create()
+    const role = await Role.create({ name: 'Temporary' })
+    const circle = await Circle.create({ name: 'Temp Circle' })
+
+    // D'abord assigner le rôle
+    await service.assignRole(user.uuid, role.uuid, circle.uuid)
+    
+    // Puis le retirer
+    await service.removeRole(user.uuid, role.uuid)
+
+    // Vérifier que le rôle n'est plus assigné
+    const userRoles = await service.getUserRoles(user.uuid)
+    assert.isFalse(userRoles.some((r) => r.id === role.id))
+  })
+
+  test('listUsers - devrait lister les utilisateurs avec filtres', async ({ assert }) => {
+    // Créer quelques utilisateurs pour le test
+    await UserFactory.merge({ fullName: 'Test User' }).createMany(3)
+    await UserFactory.merge({ fullName: 'Other User' }).createMany(2)
+
+    // Récupérer les utilisateurs avec le nom 'Test User'
+    const testUsers = await service.listUsers({ fullName: 'Test User' })
+    
+    assert.equal(testUsers.length, 3)
+    testUsers.forEach((user) => {
+      assert.equal(user.fullName, 'Test User')
+    })
+
+    // Récupérer tous les utilisateurs
+    const allUsers = await service.listUsers({})
+    assert.isTrue(allUsers.length >= 5) // Au moins nos 5 utilisateurs créés
+  })
+
+  test("listRolesByUser - devrait lister les rôles d'un utilisateur", async ({ assert }) => {
+    const user = await UserFactory.create()
+    const role1 = await Role.create({ name: 'Role1' })
+    const role2 = await Role.create({ name: 'Role2' })
+    const circle = await Circle.create({ name: 'Test Circle' })
+    
+    // Assigner deux rôles
+    await service.assignRole(user.uuid, role1.uuid, circle.uuid)
+    await service.assignRole(user.uuid, role2.uuid, circle.uuid)
+
+    // Lister les rôles
+    const roles = await service.listRolesByUser(user.uuid)
+    
+    assert.equal(roles.length, 2)
+    const roleIds = roles.map((r) => r.id)
+    assert.include(roleIds, role1.id)
+    assert.include(roleIds, role2.id)
+  })
+
   test('findByEmail - devrait retourner un utilisateur valide', async ({ assert }) => {
     const user = await UserFactory.create()
 
@@ -65,7 +197,7 @@ test.group('UserService', (group) => {
     const user = await UserFactory.create()
     const role = await Role.create({ name: 'Admin' }) // Ajouter un rôle ici
     // Simulez l'attribution d'un rôle, par exemple via un service d'attribution
-    await userRepository.assignRole(user.uuid, role.id)
+    await userRepository.assignRoleToUser(user.uuid, role.id)
 
     const roles = await service.getUserRoles(user.uuid)
 

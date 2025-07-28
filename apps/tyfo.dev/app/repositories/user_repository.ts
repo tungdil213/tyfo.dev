@@ -19,11 +19,26 @@ export default class UserRepository extends BaseRepository<User> implements User
     user.deletedAt = DateTime.now()
     await user.save()
   }
-  getAll(params?: any): Promise<User[]> {
-    throw new Error('Method not implemented.')
+  async getAll(params?: any): Promise<User[]> {
+    let query = User.query()
+
+    if (params) {
+      // Appliquer les filtres si spécifiés
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          query = query.where(key, value)
+        }
+      })
+    }
+
+    return await query
   }
-  findBy(key: string, value: any): Promise<User | null> {
-    throw new Error('Method not implemented.')
+  async findBy(key: string, value: any): Promise<User | null> {
+    return await User.findBy(key, value)
+  }
+
+  async findByUuid(uuid: string): Promise<User | null> {
+    return await User.findBy('uuid', uuid)
   }
   async restore(uuid: string): Promise<User> {
     const user = await User.findByOrFail('uuid', uuid)
@@ -31,14 +46,24 @@ export default class UserRepository extends BaseRepository<User> implements User
     await user.save()
     return user
   }
-  getUserRoles(uuid: string): Promise<Role[]> {
-    throw new Error('Method not implemented.')
+  async getUserRoles(uuid: string): Promise<Role[]> {
+    const user = await this.findByUuid(uuid)
+    if (!user) {
+      return []
+    }
+    await user.load('roles')
+    return user.roles
   }
   getUserAttributions(uuid: string): Promise<Attribution[]> {
     throw new Error('Method not implemented.')
   }
-  getUserCircles(uuid: string): Promise<Circle[]> {
-    throw new Error('Method not implemented.')
+  async getUserCircles(uuid: string): Promise<Circle[]> {
+    const user = await this.findByUuid(uuid)
+    if (!user) {
+      return []
+    }
+    await user.load('circles')
+    return user.circles
   }
 
   public async findByEmail(email: string): Promise<User | null> {
@@ -69,5 +94,76 @@ export default class UserRepository extends BaseRepository<User> implements User
 
   public async getActiveUsers(): Promise<User[]> {
     return await User.query().whereNull('deleted_at')
+  }
+
+  /**
+   * Assigne un rôle à un utilisateur dans un cercle
+   */
+  public async assignRoleToUser(
+    userUuid: string,
+    roleId: number | string,
+    circleId?: number | string
+  ): Promise<void> {
+    const user = await this.findByUuid(userUuid)
+    if (!user) {
+      throw new Error(`Utilisateur avec UUID ${userUuid} non trouvé`)
+    }
+
+    // Convertir en ID numérique si c'est un UUID
+    let roleIdNumeric = typeof roleId === 'string' ? (await Role.findByOrFail('uuid', roleId)).id : roleId
+    
+    // Préparer l'attribution
+    const attributionData: any = {
+      userId: user.id,
+      roleId: roleIdNumeric,
+    }
+
+    // Ajouter le cercle si spécifié
+    if (circleId) {
+      const circle = typeof circleId === 'string'
+        ? await Circle.findByOrFail('uuid', circleId)
+        : await Circle.findOrFail(circleId)
+      attributionData.circleId = circle.id
+    }
+
+    // Créer l'attribution
+    await Attribution.create(attributionData)
+  }
+
+  /**
+   * Retire un rôle à un utilisateur
+   */
+  public async removeRoleFromUser(userUuid: string, roleId: number | string): Promise<void> {
+    const user = await this.findByUuid(userUuid)
+    if (!user) {
+      throw new Error(`Utilisateur avec UUID ${userUuid} non trouvé`)
+    }
+    
+    // Convertir en ID numérique si c'est un UUID
+    const role = typeof roleId === 'string'
+      ? await Role.findByOrFail('uuid', roleId)
+      : await Role.findOrFail(roleId)
+    const roleIdNumeric = role.id
+
+    // Supprimer l'attribution
+    await Attribution.query().where('user_id', user.id).where('role_id', roleIdNumeric).delete()
+  }
+
+  /**
+   * Ajoute un utilisateur à un cercle
+   */
+  public async attachUserToCircle(userUuid: string, circleId: number | string): Promise<void> {
+    const user = await this.findByUuid(userUuid)
+    if (!user) {
+      throw new Error(`Utilisateur avec UUID ${userUuid} non trouvé`)
+    }
+
+    // Convertir en ID numérique si c'est un UUID
+    const circle = typeof circleId === 'string'
+      ? await Circle.findByOrFail('uuid', circleId)
+      : await Circle.findOrFail(circleId)
+    // Mettre à jour le cercle pour y ajouter l'utilisateur (relation One-to-Many)
+    circle.userId = user.id
+    await circle.save()
   }
 }
