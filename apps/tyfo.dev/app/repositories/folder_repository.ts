@@ -7,19 +7,20 @@ export default class FolderRepository
   implements FolderRepositoryContract
 {
   async listByCircleUuid(circleUuid: string): Promise<Folder[]> {
-    return await Folder.query().where('circle_uuid', circleUuid)
+    return await Folder.query().where('circle_id', circleUuid)
   }
   async listByRole(roleUuid: string): Promise<Folder[]> {
-    return await Folder.query().where('role_uuid', roleUuid)
+    // Note: role_id n'existe pas dans le modèle actuel
+    return await Folder.query().where('role_id', roleUuid)
   }
   async listByUser(userId: number): Promise<Folder[]> {
     return await Folder.query().where('user_id', userId)
   }
   async listByCircleAndRole(circleUuid: string, roleUuid: string): Promise<Folder[]> {
-    return await Folder.query().where('circle_uuid', circleUuid).where('role_uuid', roleUuid)
+    return await Folder.query().where('circle_id', circleUuid).where('role_id', roleUuid)
   }
   async listByRoleAndUser(roleUuid: string, userId: number): Promise<Folder[]> {
-    return await Folder.query().where('role_uuid', roleUuid).where('user_id', userId)
+    return await Folder.query().where('role_id', roleUuid).where('user_id', userId)
   }
   async listByCircleAndRoleAndUser(
     circleUuid: string,
@@ -27,8 +28,8 @@ export default class FolderRepository
     userId: number
   ): Promise<Folder[]> {
     return await Folder.query()
-      .where('circle_uuid', circleUuid)
-      .where('role_uuid', roleUuid)
+      .where('circle_id', circleUuid)
+      .where('role_id', roleUuid)
       .where('user_id', userId)
   }
   async listByCircleAndRoleAndUserAndObject(
@@ -38,10 +39,10 @@ export default class FolderRepository
     objectUuid: string
   ): Promise<Folder[]> {
     return await Folder.query()
-      .where('circle_uuid', circleUuid)
-      .where('role_uuid', roleUuid)
+      .where('circle_id', circleUuid)
+      .where('role_id', roleUuid)
       .where('user_id', userId)
-      .where('object_uuid', objectUuid)
+      .where('object_id', objectUuid)
   }
   async listByCircleAndRoleAndUserAndObjectAndFolder(
     circleUuid: string,
@@ -51,11 +52,11 @@ export default class FolderRepository
     folderUuid: string
   ): Promise<Folder[]> {
     return await Folder.query()
-      .where('circle_uuid', circleUuid)
-      .where('role_uuid', roleUuid)
+      .where('circle_id', circleUuid)
+      .where('role_id', roleUuid)
       .where('user_id', userId)
-      .where('object_uuid', objectUuid)
-      .where('folder_uuid', folderUuid)
+      .where('object_id', objectUuid)
+      .where('folder_id', folderUuid)
   }
 
   public async create(data: Partial<Folder>): Promise<Folder> {
@@ -63,7 +64,7 @@ export default class FolderRepository
   }
 
   public async findByUuid(folderUuid: string): Promise<Folder | null> {
-    return await Folder.findBy('uuid', folderUuid)
+    return await Folder.findBy('folder_uuid', folderUuid)
   }
 
   public async findByName(name: string): Promise<Folder | null> {
@@ -75,10 +76,10 @@ export default class FolderRepository
   }
 
   public async listByCircle(circleUuid: string): Promise<Folder[]> {
-    return await Folder.query().where('circle_uuid', circleUuid)
+    return await Folder.query().where('circle_id', circleUuid)
   }
 
   public async listByCircleAndUser(circleUuid: string, userId: number): Promise<Folder[]> {
-    return await Folder.query().where('circle_uuid', circleUuid).where('user_id', userId)
+    return await Folder.query().where('circle_id', circleUuid).where('user_id', userId)
   }
 }

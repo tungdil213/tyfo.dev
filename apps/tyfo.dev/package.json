@@ -10,6 +10,7 @@
     "clean": "rm -rf .turbo node_modules build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
+    "test:coverage": "c8 --include=app/** --exclude=app/**/*.spec.ts node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
@@ -50,10 +51,13 @@
     "@types/node": "^22.13.5",
     "@vitejs/plugin-react": "^4.3.4",
     "better-sqlite3": "^11.10.0",
+    "c8": "^10.1.3",
     "eslint": "^9.21.0",
     "hot-hook": "^0.4.0",
     "pino-pretty": "^13.0.0",
     "prettier": "^3.5.2",
+    "sinon": "^21.0.0",
+    "sinon-test": "^3.1.6",
     "ts-node-maintained": "^10.9.5",
     "typescript": "~5.7.3"
   },

@@ -14,6 +14,15 @@ import { DateTime } from 'luxon'
 
 // Fonction utilitaire pour créer un MultipartFile simulé pour les tests
 async function createMockMultipartFile(content = 'contenu test', name = 'test.txt') {
+  // Déterminer le type MIME en fonction de l'extension du fichier
+  let mimeType = 'text/plain' // Par défaut
+  if (name.endsWith('.pdf')) {
+    mimeType = 'application/pdf'
+  } else if (name.endsWith('.jpg') || name.endsWith('.jpeg')) {
+    mimeType = 'image/jpeg'
+  } else if (name.endsWith('.png')) {
+    mimeType = 'image/png'
+  }
   const CUSTOM_TMP_DIR = join(app.tmpPath(), env.get('TEST_TMP_DIR', 'test-tmp'))
 
   // S'assurer que le répertoire existe
@@ -35,8 +44,8 @@ async function createMockMultipartFile(content = 'contenu test', name = 'test.tx
 
   multipartFile.tmpPath = tmpFilePath
   multipartFile.size = Buffer.from(content).length
-  multipartFile.type = 'text'
-  multipartFile.subtype = 'plain'
+  // Définir le type MIME complet pour que la méthode processUploadedFile l'utilise correctement
+  multipartFile.type = mimeType
   // Note: isValid est une propriété calculée en lecture seule dans MultipartFile
 
   return multipartFile
