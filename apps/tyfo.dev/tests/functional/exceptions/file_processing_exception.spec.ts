@@ -3,7 +3,16 @@ import FileProcessingException from '#exceptions/file_processing_exception'
 import sinon from 'sinon'
 import { HttpContext } from '@adonisjs/core/http'
 
-test.group('FileProcessingException', () => {
+test.group('FileProcessingException', (group) => {
+  let sandbox: sinon.SinonSandbox
+
+  group.each.setup(() => {
+    sandbox = sinon.createSandbox()
+  })
+
+  group.each.teardown(() => {
+    sandbox.restore()
+  })
   test('should have correct static status value', ({ assert }) => {
     assert.equal(FileProcessingException.status, 500)
   })
@@ -18,13 +27,13 @@ test.group('FileProcessingException', () => {
   test('should handle error response with custom message', async ({ assert }) => {
     const message = 'File processing failed'
     const exception = new FileProcessingException(message)
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sinon.stub().returnsThis(),
       json: sinon.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext
@@ -42,17 +51,19 @@ test.group('FileProcessingException', () => {
     )
   })
 
-  test('should handle error response with default message when message is not provided', async ({ assert }) => {
+  test('should handle error response with default message when message is not provided', async ({
+    assert,
+  }) => {
     // Create exception without message
     const exception = new FileProcessingException()
     exception.message = '' // explicitly set to empty to test default message path
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sinon.stub().returnsThis(),
       json: sinon.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext
@@ -74,13 +85,13 @@ test.group('FileProcessingException', () => {
     const message = 'File processing failed with custom status'
     const exception = new FileProcessingException(message)
     exception.status = 507 // Insufficient Storage
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sinon.stub().returnsThis(),
       json: sinon.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext

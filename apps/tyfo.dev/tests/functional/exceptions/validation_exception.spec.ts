@@ -3,7 +3,16 @@ import ValidationException from '#exceptions/validation_exception'
 import sinon from 'sinon'
 import { HttpContext } from '@adonisjs/core/http'
 
-test.group('ValidationException', () => {
+test.group('ValidationException', (group) => {
+  let sandbox: sinon.SinonSandbox
+
+  group.each.setup(() => {
+    sandbox = sinon.createSandbox()
+  })
+
+  group.each.teardown(() => {
+    sandbox.restore()
+  })
   test('should create an instance with correct default values', ({ assert }) => {
     const message = 'Validation failed'
     const exception = new ValidationException(message)
@@ -38,8 +47,8 @@ test.group('ValidationException', () => {
     
     // Mock HttpContext
     const mockResponse = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub(),
+      status: sandbox.stub().returnsThis(),
+      json: sandbox.stub(),
     }
     
     const mockCtx = {

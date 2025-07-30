@@ -3,7 +3,17 @@ import NotFoundException from '#exceptions/not_found_exception'
 import sinon from 'sinon'
 import { HttpContext } from '@adonisjs/core/http'
 
-test.group('NotFoundException', () => {
+test.group('NotFoundException', (group) => {
+  let sandbox: sinon.SinonSandbox
+
+  group.each.setup(() => {
+    sandbox = sinon.createSandbox()
+  })
+
+  group.each.teardown(() => {
+    sandbox.restore()
+  })
+
   test('should have correct static status value', ({ assert }) => {
     assert.equal(NotFoundException.status, 404)
   })
@@ -22,8 +32,8 @@ test.group('NotFoundException', () => {
     
     // Mock HttpContext
     const mockResponse = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub(),
+      status: sandbox.stub().returnsThis(),
+      json: sandbox.stub(),
     }
     
     const mockCtx = {
@@ -50,8 +60,8 @@ test.group('NotFoundException', () => {
     
     // Mock HttpContext
     const mockResponse = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub(),
+      status: sandbox.stub().returnsThis(),
+      json: sandbox.stub(),
     }
     
     const mockCtx = {
@@ -78,8 +88,8 @@ test.group('NotFoundException', () => {
     
     // Mock HttpContext
     const mockResponse = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub(),
+      status: sandbox.stub().returnsThis(),
+      json: sandbox.stub(),
     }
     
     const mockCtx = {

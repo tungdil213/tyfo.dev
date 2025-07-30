@@ -2,7 +2,17 @@ import { test } from '@japa/runner'
 import { generateUuid } from '#utils/uuid_helper'
 import FolderRepository from '#repositories/folder_repository'
 import Folder from '#models/folder'
+import User from '#models/user'
+import Circle from '#models/circle'
 import type { FolderRepositoryContract } from '#repositories/contracts/folder_repository_contract'
+import db from '@adonisjs/lucid/services/db'
+
+// Fonction utilitaire pour générer un email unique
+function generateUniqueEmail(prefix: string = 'test'): string {
+  const timestamp = Date.now()
+  const random = Math.floor(Math.random() * 10000)
+  return `${prefix}_${timestamp}_${random}@example.com`
+}
 
 // Classe pour simuler un dossier sans dépendre de la base de données
 interface MockFolderData {
@@ -28,60 +38,63 @@ class MockFolder implements Partial<Folder> {
   public updatedAt: Date
 
   constructor(data: MockFolderData, id: number = Math.floor(Math.random() * 1000)) {
-    this.id = id;
-    this.uuid = data.uuid;
-    this.name = data.name;
-    this.description = data.description;
-    this.circleId = data.circleId;
-    this.userId = data.userId;
-    this.parentId = data.parentId || null;
-    this.createdAt = data.createdAt || new Date();
-    this.updatedAt = data.updatedAt || new Date();
+    this.id = id
+    this.uuid = data.uuid
+    this.name = data.name
+    this.description = data.description
+    this.circleId = data.circleId
+    this.userId = data.userId
+    this.parentId = data.parentId || null
+    this.createdAt = data.createdAt || new Date()
+    this.updatedAt = data.updatedAt || new Date()
   }
 }
 
 // Implementation mockée du repository de dossiers
 class MockFolderRepository implements FolderRepositoryContract {
-  private folders: MockFolder[] = [];
-  private nextId: number = 1;
+  private folders: MockFolder[] = []
+  private nextId: number = 1
 
   async create(data: any): Promise<MockFolder> {
-    const folder = new MockFolder(data, this.nextId++);
-    this.folders.push(folder);
-    return folder;
+    const folder = new MockFolder(data, this.nextId++)
+    this.folders.push(folder)
+    return folder
   }
 
   async findByUuid(uuid: string): Promise<MockFolder | null> {
-    const folder = this.folders.find(f => f.uuid === uuid);
-    return folder || null;
+    const folder = this.folders.find((f) => f.uuid === uuid)
+    return folder || null
   }
 
   async findByName(name: string): Promise<MockFolder | null> {
-    const folder = this.folders.find(f => f.name === name);
-    return folder || null;
+    const folder = this.folders.find((f) => f.name === name)
+    return folder || null
   }
 
   async list(): Promise<MockFolder[]> {
-    return [...this.folders];
+    return [...this.folders]
   }
 
   async listByCircle(circleId: string): Promise<MockFolder[]> {
-    return this.folders.filter(f => f.circleId.toString() === circleId);
+    return this.folders.filter((f) => f.circleId.toString() === circleId)
   }
 
   async listByCircleAndUser(circleId: string, userId: number): Promise<MockFolder[]> {
-    return this.folders.filter(
-      f => f.circleId.toString() === circleId && f.userId === userId
-    );
+    return this.folders.filter((f) => f.circleId.toString() === circleId && f.userId === userId)
   }
 
   async listByUser(userId: number): Promise<MockFolder[]> {
-    return this.folders.filter(f => f.userId === userId);
+    return this.folders.filter((f) => f.userId === userId)
   }
 }
 
 test.group('FolderRepository', (group) => {
   let folderRepository: MockFolderRepository
+  let testUser: User
+  let testUser2: User
+  let testUser4: User
+  let testCircle: Circle
+  let testCircle3: Circle
 
   // Créer une nouvelle instance du repository mocké avant chaque test
   group.each.setup(() => {
@@ -90,6 +103,43 @@ test.group('FolderRepository', (group) => {
 
   group.each.setup(async () => {
     await db.beginGlobalTransaction()
+
+    // Créer les utilisateurs de test
+    testUser = await User.create({
+      uuid: generateUuid(),
+      fullName: 'Test User',
+      email: generateUniqueEmail('testuser'),
+      password: 'password123',
+    })
+
+    testUser2 = await User.create({
+      uuid: generateUuid(),
+      fullName: 'Test User 2',
+      email: generateUniqueEmail('testuser2'),
+      password: 'password123',
+    })
+
+    testUser4 = await User.create({
+      uuid: generateUuid(),
+      fullName: 'Test User 4',
+      email: generateUniqueEmail('testuser4'),
+      password: 'password123',
+    })
+
+    // Créer les cercles de test
+    testCircle = await Circle.create({
+      uuid: generateUuid(),
+      name: 'Test Circle',
+      description: 'Test circle description',
+      userId: testUser.id,
+    })
+
+    testCircle3 = await Circle.create({
+      uuid: generateUuid(),
+      name: 'Test Circle 3',
+      description: 'Test circle 3 description',
+      userId: testUser4.id,
+    })
   })
 
   group.each.teardown(async () => {
@@ -165,13 +215,7 @@ test.group('FolderRepository', (group) => {
   })
 
   test('list should retrieve all folders', async ({ assert }) => {
-    // Créer un deuxième utilisateur pour tester
-    const testUser2 = await User.create({
-      uuid: generateUuid(),
-      fullName: 'Test User 2',
-      email: 'test2@example.com',
-      password: 'password123',
-    })
+    // Utiliser le deuxième utilisateur déjà créé dans le setup
 
     // Créer plusieurs dossiers
     const folderData1 = {
@@ -212,7 +256,7 @@ test.group('FolderRepository', (group) => {
     const testUser3 = await User.create({
       uuid: generateUuid(),
       fullName: 'Test User 3',
-      email: 'test3@example.com',
+      email: generateUniqueEmail('testuser3'),
       password: 'password123',
     })
 
@@ -265,28 +309,17 @@ test.group('FolderRepository', (group) => {
     })
   })
 
-  test('listByCircleAndUser should retrieve folders for a specific circle and user', async ({ assert }) => {
-    // Créer des utilisateurs supplémentaires
-    const testUser4 = await User.create({
-      uuid: generateUuid(),
-      fullName: 'Test User 4',
-      email: 'test4@example.com',
-      password: 'password123',
-    })
+  test('listByCircleAndUser should retrieve folders for a specific circle and user', async ({
+    assert,
+  }) => {
+    // Utiliser les utilisateurs et cercles déjà créés dans le setup
 
+    // Créer un utilisateur supplémentaire pour ce test spécifique
     const testUser5 = await User.create({
       uuid: generateUuid(),
       fullName: 'Test User 5',
-      email: 'test5@example.com',
+      email: generateUniqueEmail('testuser5'),
       password: 'password123',
-    })
-
-    // Créer un cercle supplémentaire
-    const testCircle3 = await Circle.create({
-      uuid: generateUuid(),
-      name: 'Test Circle 3',
-      description: 'Third circle for testing',
-      userId: testUser4.id,
     })
 
     // Créer des dossiers pour l'utilisateur 4 dans le cercle 3
@@ -323,7 +356,10 @@ test.group('FolderRepository', (group) => {
     ])
 
     // Récupérer les dossiers pour l'utilisateur 4 dans le cercle 3
-    const folders = await folderRepository.listByCircleAndUser(testCircle3.id.toString(), testUser4.id)
+    const folders = await folderRepository.listByCircleAndUser(
+      testCircle3.id.toString(),
+      testUser4.id
+    )
 
     // Vérifier qu'on récupère uniquement les dossiers de l'utilisateur 4
     assert.lengthOf(folders, 2)

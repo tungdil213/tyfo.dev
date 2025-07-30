@@ -14,331 +14,611 @@
 import { test } from '@japa/runner'
 import { generateUuid } from '#utils/uuid_helper'
 import { DateTime } from 'luxon'
-import { ObjectRepositoryContract } from '#repositories/contracts/object_repository_contract'
 import ObjectRepository from '#repositories/object_repository'
-import sinon from 'sinon'
-import sinonTest from 'sinon-test'
 import ObjectModel from '#models/object'
+import sinon from 'sinon'
+import NotFoundException from '#exceptions/not_found_exception'
 
 test.group('ObjectRepository (Sinon mock)', (group) => {
   let objectRepository: ObjectRepository
-  let stest = sinonTest(sinon, { useFakeTimers: false })
 
-  group.setup(async () => {
+  group.each.setup(() => {
     objectRepository = new ObjectRepository()
   })
 
-  test('create - devrait créer un nouvel objet', stest(function () {
-    const mockObject = {
-      id: 1,
-      uuid: generateUuid(),
-      name: 'test.txt',
+  test('create - should create a new object and return it', async ({ assert }) => {
+    // Arrange
+    const uuid = generateUuid()
+    const now = DateTime.now()
+    
+    const objectData: Partial<ObjectModel> = {
+      name: 'test-object.txt',
       folderId: 1,
-      circleId: 1,
       userId: 1,
-      size: 1024,
       mimeType: 'text/plain',
-      metadata: { author: 'Test User' },
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now()
+      hash: 'abc123',
+      location: '/storage/test-object.txt',
+      revision: 1,
     }
 
-    // Configurer le mock
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('create').once().withArgs({
-      name: 'test.txt',
+    const expectedObject = {
+      id: 1,
+      uuid,
+      name: 'test-object.txt',
       folderId: 1,
-      circleId: 1,
       userId: 1,
-      size: 1024,
       mimeType: 'text/plain',
-      metadata: { author: 'Test User' }
-    }).resolves(mockObject)
+      hash: 'abc123',
+      location: '/storage/test-object.txt',
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+    } as unknown as ObjectModel
 
-    // Exécuter l'opération
-    return objectRepository.create({
-      name: 'test.txt',
-      folderId: 1,
-      circleId: 1,
-      userId: 1,
-      size: 1024,
-      mimeType: 'text/plain',
-      metadata: { author: 'Test User' }
-    }).then(result => {
-      // Vérifier le résultat
-      test.assert.equal(result.name, 'test.txt')
-      test.assert.equal(result.mimeType, 'text/plain')
-      test.assert.equal(result.size, 1024)
+    // Create stubs
+    const createStub = sinon.stub(objectRepository, 'create')
+    createStub.withArgs(objectData).resolves(expectedObject)
+
+    try {
+      // Act
+      const result = await objectRepository.create(objectData)
+
+      // Assert
+      assert.equal(result.id, expectedObject.id)
+      assert.equal(result.name, expectedObject.name)
+      assert.equal(result.folderId, expectedObject.folderId)
+      assert.equal(result.userId, expectedObject.userId)
+      assert.equal(result.mimeType, expectedObject.mimeType)
+      assert.equal(result.hash, expectedObject.hash)
+      assert.equal(result.location, expectedObject.location)
+      assert.equal(result.revision, expectedObject.revision)
       
-      // Vérifier que la méthode a été appelée correctement
-      mockRepository.verify()
-    })
-  }))
-
-  test('findByUuid - devrait trouver un objet par UUID', stest(function () {
-    const mockObject = {
-      id: 1,
-      uuid: 'test-uuid',
-      name: 'test.txt',
-      folderId: 1,
-      circleId: 1,
-      userId: 1,
-      size: 1024,
-      mimeType: 'text/plain',
-      metadata: { author: 'Test User' },
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now()
+      sinon.assert.calledOnce(createStub)
+      sinon.assert.calledWith(createStub, objectData)
+    } finally {
+      // Clean up
+      createStub.restore()
     }
+  })
 
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('findByUuid').once().withArgs('test-uuid').resolves(mockObject)
+  test('findByUuid - should find an object by UUID', async ({ assert }) => {
+    // Arrange
+    const uuid = generateUuid()
+    const now = DateTime.now()
+    
+    const expectedObject = {
+      id: 1,
+      uuid,
+      name: 'test-object.txt',
+      folderId: 1,
+      userId: 1,
+      mimeType: 'text/plain',
+      hash: 'abc123',
+      location: '/storage/test-object.txt',
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+    } as unknown as ObjectModel
 
-    return objectRepository.findByUuid('test-uuid').then(result => {
-      test.assert.equal(result.uuid, 'test-uuid')
-      mockRepository.verify()
-    })
-  }))
+    // Create stubs
+    const findByUuidStub = sinon.stub(objectRepository, 'findByUuid')
+    findByUuidStub.withArgs(uuid).resolves(expectedObject)
+    findByUuidStub.withArgs('non-existent-uuid').resolves(null)
 
-  test('listByFolder - devrait lister les objets d\'un dossier', stest(function () {
-    const mockObjects = [
-      {
-        id: 1,
-        uuid: generateUuid(),
-        name: 'document.txt',
-        folderId: 1,
-        circleId: 1,
-        userId: 1,
-        size: 1024,
-        mimeType: 'text/plain',
-        metadata: { author: 'Test User' },
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now()
-      },
-      {
-        id: 2,
-        uuid: generateUuid(),
-        name: 'image.jpg',
-        folderId: 1,
-        circleId: 1,
-        userId: 1,
-        size: 5120,
-        mimeType: 'image/jpeg',
-        metadata: { author: 'Test User' },
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now()
+    try {
+      // Act
+      const result = await objectRepository.findByUuid(uuid)
+      const nonExistentResult = await objectRepository.findByUuid('non-existent-uuid')
+
+      // Assert
+      assert.isNotNull(result)
+      if (result) {
+        assert.equal(result.id, expectedObject.id)
+        assert.equal(result.uuid, expectedObject.uuid)
+        assert.equal(result.name, expectedObject.name)
       }
-    ]
+      
+      assert.isNull(nonExistentResult)
+      
+      sinon.assert.calledTwice(findByUuidStub)
+      sinon.assert.calledWith(findByUuidStub, uuid)
+      sinon.assert.calledWith(findByUuidStub, 'non-existent-uuid')
+    } finally {
+      // Clean up
+      findByUuidStub.restore()
+    }
+  })
 
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('listByFolder').once().withArgs('folder-uuid').resolves(mockObjects)
+  test('findById - should find an object by ID', async ({ assert }) => {
+    // Arrange
+    const uuid = generateUuid()
+    const now = DateTime.now()
+    
+    const expectedObject = {
+      id: 1,
+      uuid,
+      name: 'test-object.txt',
+      folderId: 1,
+      userId: 1,
+      mimeType: 'text/plain',
+      hash: 'abc123',
+      location: '/storage/test-object.txt',
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+    } as unknown as ObjectModel
 
-    return objectRepository.listByFolder('folder-uuid').then(results => {
-      test.assert.equal(results.length, 2)
-      test.assert.equal(results[0].name, 'document.txt')
-      test.assert.equal(results[1].name, 'image.jpg')
-      mockRepository.verify()
-    })
-  }))
+    // Create stubs
+    const findByIdStub = sinon.stub(objectRepository, 'findById')
+    findByIdStub.withArgs(1).resolves(expectedObject)
+    findByIdStub.withArgs(999).resolves(null)
 
-  test('listByCircle - devrait lister les objets d\'un cercle', stest(function () {
-    const mockObjects = [
+    try {
+      // Act
+      const result = await objectRepository.findById(1)
+      const nonExistentResult = await objectRepository.findById(999)
+
+      // Assert
+      assert.isNotNull(result)
+      if (result) {
+        assert.equal(result.id, expectedObject.id)
+        assert.equal(result.uuid, expectedObject.uuid)
+        assert.equal(result.name, expectedObject.name)
+      }
+      
+      assert.isNull(nonExistentResult)
+      
+      sinon.assert.calledTwice(findByIdStub)
+      sinon.assert.calledWith(findByIdStub, 1)
+      sinon.assert.calledWith(findByIdStub, 999)
+    } finally {
+      // Clean up
+      findByIdStub.restore()
+    }
+  })
+
+  test('findByFolder - should return objects from a specific folder', async ({ assert }) => {
+    // Arrange
+    const now = DateTime.now()
+    
+    const expectedObjects = [
       {
         id: 1,
         uuid: generateUuid(),
-        name: 'document.txt',
+        name: 'test-object-1.txt',
         folderId: 1,
-        circleId: 1,
         userId: 1,
-        size: 1024,
         mimeType: 'text/plain',
-        metadata: { author: 'Test User' },
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now()
+        hash: 'abc123',
+        location: '/storage/test-object-1.txt',
+        revision: 1,
+        createdAt: now,
+        updatedAt: now,
       },
       {
         id: 2,
         uuid: generateUuid(),
-        name: 'image.jpg',
+        name: 'test-object-2.txt',
+        folderId: 1,
+        userId: 1,
+        mimeType: 'text/plain',
+        hash: 'def456',
+        location: '/storage/test-object-2.txt',
+        revision: 1,
+        createdAt: now,
+        updatedAt: now,
+      }
+    ] as unknown as ObjectModel[]
+
+    // Create stubs
+    const findByFolderStub = sinon.stub(objectRepository, 'findByFolder')
+    findByFolderStub.withArgs(1).resolves(expectedObjects)
+    findByFolderStub.withArgs(999).resolves([])
+
+    try {
+      // Act
+      const results = await objectRepository.findByFolder(1)
+      const emptyResults = await objectRepository.findByFolder(999)
+
+      // Assert
+      assert.lengthOf(results, 2)
+      assert.equal(results[0].id, expectedObjects[0].id)
+      assert.equal(results[0].name, expectedObjects[0].name)
+      assert.equal(results[1].id, expectedObjects[1].id)
+      
+      assert.isEmpty(emptyResults)
+      
+      sinon.assert.calledTwice(findByFolderStub)
+      sinon.assert.calledWith(findByFolderStub, 1)
+      sinon.assert.calledWith(findByFolderStub, 999)
+    } finally {
+      // Clean up
+      findByFolderStub.restore()
+    }
+  })
+
+  test('findByHash - should find an object by hash', async ({ assert }) => {
+    // Arrange
+    const uuid = generateUuid()
+    const now = DateTime.now()
+    const hash = 'abc123'
+    
+    const expectedObject = {
+      id: 1,
+      uuid,
+      name: 'test-object.txt',
+      folderId: 1,
+      userId: 1,
+      mimeType: 'text/plain',
+      hash,
+      location: '/storage/test-object.txt',
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+    } as unknown as ObjectModel
+
+    // Create stubs
+    const findByHashStub = sinon.stub(objectRepository, 'findByHash')
+    findByHashStub.withArgs(hash).resolves(expectedObject)
+    findByHashStub.withArgs('non-existent-hash').resolves(null)
+
+    try {
+      // Act
+      const result = await objectRepository.findByHash(hash)
+      const nonExistentResult = await objectRepository.findByHash('non-existent-hash')
+
+      // Assert
+      assert.isNotNull(result)
+      if (result) {
+        assert.equal(result.id, expectedObject.id)
+        assert.equal(result.hash, expectedObject.hash)
+        assert.equal(result.name, expectedObject.name)
+      }
+      
+      assert.isNull(nonExistentResult)
+      
+      sinon.assert.calledTwice(findByHashStub)
+      sinon.assert.calledWith(findByHashStub, hash)
+      sinon.assert.calledWith(findByHashStub, 'non-existent-hash')
+    } finally {
+      // Clean up
+      findByHashStub.restore()
+    }
+  })
+
+  test('findByMimeType - should find objects by mime type', async ({ assert }) => {
+    // Arrange
+    const now = DateTime.now()
+    const mimeType = 'text/plain'
+    
+    const expectedObjects = [
+      {
+        id: 1,
+        uuid: generateUuid(),
+        name: 'test-object-1.txt',
+        folderId: 1,
+        userId: 1,
+        mimeType,
+        hash: 'abc123',
+        location: '/storage/test-object-1.txt',
+        revision: 1,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 2,
+        uuid: generateUuid(),
+        name: 'test-object-2.txt',
         folderId: 2,
-        circleId: 1,
-        userId: 2,
-        size: 5120,
-        mimeType: 'image/jpeg',
-        metadata: { author: 'Another User' },
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now()
-      }
-    ]
-
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('listByCircle').once().withArgs('circle-uuid').resolves(mockObjects)
-
-    return objectRepository.listByCircle('circle-uuid').then(results => {
-      test.assert.equal(results.length, 2)
-      test.assert.equal(results[0].name, 'document.txt')
-      test.assert.equal(results[1].name, 'image.jpg')
-      mockRepository.verify()
-    })
-  }))
-
-  test('list - devrait lister les objets selon des critères', stest(function () {
-    const mockObjects = [
-      {
-        id: 1,
-        uuid: generateUuid(),
-        name: 'document.txt',
-        folderId: 1,
-        circleId: 1,
         userId: 1,
-        size: 1024,
-        mimeType: 'text/plain',
-        metadata: { author: 'Test User' },
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now()
+        mimeType,
+        hash: 'def456',
+        location: '/storage/test-object-2.txt',
+        revision: 1,
+        createdAt: now,
+        updatedAt: now,
       }
-    ]
+    ] as unknown as ObjectModel[]
 
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('list').once().withArgs({
-      mimeType: 'text/plain',
-      metadata: { author: 'Test User' }
-    }).resolves(mockObjects)
+    // Create stubs
+    const findByMimeTypeStub = sinon.stub(objectRepository, 'findByMimeType')
+    findByMimeTypeStub.withArgs(mimeType).resolves(expectedObjects)
+    findByMimeTypeStub.withArgs('application/unknown').resolves([])
 
-    return objectRepository.list({
-      mimeType: 'text/plain',
-      metadata: { author: 'Test User' }
-    }).then(results => {
-      test.assert.equal(results.length, 1)
-      test.assert.equal(results[0].name, 'document.txt')
-      test.assert.equal(results[0].mimeType, 'text/plain')
-      mockRepository.verify()
-    })
-  }))
+    try {
+      // Act
+      const results = await objectRepository.findByMimeType(mimeType)
+      const emptyResults = await objectRepository.findByMimeType('application/unknown')
 
-  test('update - devrait mettre à jour un objet existant', stest(function () {
-    const mockUpdatedObject = {
-      id: 1,
-      uuid: 'test-uuid',
-      name: 'updated.txt',
+      // Assert
+      assert.lengthOf(results, 2)
+      assert.equal(results[0].mimeType, mimeType)
+      assert.equal(results[1].mimeType, mimeType)
+      
+      assert.isEmpty(emptyResults)
+      
+      sinon.assert.calledTwice(findByMimeTypeStub)
+      sinon.assert.calledWith(findByMimeTypeStub, mimeType)
+      sinon.assert.calledWith(findByMimeTypeStub, 'application/unknown')
+    } finally {
+      // Clean up
+      findByMimeTypeStub.restore()
+    }
+  })
+
+  test('update - should update an object and return it', async ({ assert }) => {
+    // Arrange
+    const uuid = generateUuid()
+    const now = DateTime.now()
+    
+    const objectId = 1
+    const updateData: Partial<ObjectModel> = {
+      name: 'updated-object.txt',
+    }
+
+    const expectedObject = {
+      id: objectId,
+      uuid,
+      name: 'updated-object.txt',
       folderId: 1,
-      circleId: 1,
       userId: 1,
-      size: 1024,
       mimeType: 'text/plain',
-      metadata: { author: 'Updated User' },
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now()
+      hash: 'abc123',
+      location: '/storage/test-object.txt',
+      revision: 1,
+      createdAt: now,
+      updatedAt: now,
+    } as unknown as ObjectModel
+
+    // Create stubs
+    const updateStub = sinon.stub(objectRepository, 'update')
+    updateStub.withArgs(objectId, updateData).resolves(expectedObject)
+
+    try {
+      // Act
+      const result = await objectRepository.update(objectId, updateData)
+
+      // Assert
+      assert.equal(result.id, expectedObject.id)
+      assert.equal(result.name, expectedObject.name)
+      
+      sinon.assert.calledOnce(updateStub)
+      sinon.assert.calledWith(updateStub, objectId, updateData)
+    } finally {
+      // Clean up
+      updateStub.restore()
+    }
+  })
+
+  test('createRevision - should create a new revision of an object', async ({ assert }) => {
+    // Arrange
+    const now = DateTime.now()
+    const objectId = 1
+    
+    const revisionData: Partial<ObjectModel> = {
+      hash: 'newHash123',
+      location: '/storage/new-location.txt',
+      revision: 2,
     }
 
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('update').once().withArgs('test-uuid', {
-      name: 'updated.txt',
-      metadata: { author: 'Updated User' }
-    }).resolves(mockUpdatedObject)
-
-    return objectRepository.update('test-uuid', {
-      name: 'updated.txt',
-      metadata: { author: 'Updated User' }
-    }).then(result => {
-      test.assert.equal(result.name, 'updated.txt')
-      test.assert.deepEqual(result.metadata, { author: 'Updated User' })
-      mockRepository.verify()
-    })
-  }))
-
-  test('remove - devrait supprimer un objet existant', stest(function () {
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('remove').once().withArgs('test-uuid').resolves()
-
-    return objectRepository.remove('test-uuid').then(() => {
-      mockRepository.verify()
-    })
-  }))
-
-  test('moveToFolder - devrait déplacer un objet vers un autre dossier', stest(function () {
-    const mockUpdatedObject = {
-      id: 1,
-      uuid: 'test-uuid',
-      name: 'document.txt',
-      folderId: 2, // Nouveau dossier
-      circleId: 1,
-      userId: 1,
-      size: 1024,
-      mimeType: 'text/plain',
-      metadata: { author: 'Test User' },
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now()
-    }
-
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('moveToFolder').once().withArgs('test-uuid', 'new-folder-uuid').resolves(mockUpdatedObject)
-
-    return objectRepository.moveToFolder('test-uuid', 'new-folder-uuid').then(result => {
-      test.assert.equal(result.folderId, 2)
-      mockRepository.verify()
-    })
-  }))
-
-  test('createVersion - devrait créer une nouvelle version d\'un objet', stest(function () {
-    const mockVersion = {
-      id: 1,
+    const expectedObject = {
+      id: 2,
       uuid: generateUuid(),
-      objectId: 1,
-      objectUuid: 'test-uuid',
-      size: 1024,
-      versionNumber: 2,
-      metadata: { author: 'Test User', comment: 'New version' },
-      createdAt: DateTime.now()
+      name: 'test-object.txt',
+      folderId: 1,
+      userId: 1,
+      mimeType: 'text/plain',
+      hash: 'newHash123',
+      location: '/storage/new-location.txt',
+      revision: 2,
+      createdAt: now,
+      updatedAt: now,
+    } as unknown as ObjectModel
+
+    // Create stubs
+    const createRevisionStub = sinon.stub(objectRepository, 'createRevision')
+    createRevisionStub.withArgs(objectId, revisionData).resolves(expectedObject)
+
+    try {
+      // Act
+      const result = await objectRepository.createRevision(objectId, revisionData)
+
+      // Assert
+      assert.equal(result.id, expectedObject.id)
+      assert.equal(result.hash, expectedObject.hash)
+      assert.equal(result.location, expectedObject.location)
+      assert.equal(result.revision, expectedObject.revision)
+      
+      sinon.assert.calledOnce(createRevisionStub)
+      sinon.assert.calledWith(createRevisionStub, objectId, revisionData)
+    } finally {
+      // Clean up
+      createRevisionStub.restore()
     }
+  })
 
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('createVersion').once().withArgs('test-uuid', {
-      size: 1024,
-      metadata: { author: 'Test User', comment: 'New version' }
-    }).resolves(mockVersion)
-
-    return objectRepository.createVersion('test-uuid', {
-      size: 1024,
-      metadata: { author: 'Test User', comment: 'New version' }
-    }).then(result => {
-      test.assert.equal(result.objectUuid, 'test-uuid')
-      test.assert.equal(result.versionNumber, 2)
-      mockRepository.verify()
-    })
-  }))
-
-  test('listRevisions - devrait lister les versions d\'un objet', stest(function () {
-    const mockVersions = [
+  test('getRevisions - should get all revisions of an object', async ({ assert }) => {
+    // Arrange
+    const now = DateTime.now()
+    const objectId = 1
+    const baseUuid = generateUuid()
+    
+    const expectedRevisions = [
       {
         id: 1,
-        uuid: generateUuid(),
-        objectId: 1,
-        objectUuid: 'test-uuid',
-        size: 1024,
-        versionNumber: 1,
-        metadata: { author: 'Test User', comment: 'Initial version' },
-        createdAt: DateTime.now().minus({ days: 1 })
+        uuid: baseUuid,
+        name: 'test-object.txt',
+        folderId: 1,
+        userId: 1,
+        mimeType: 'text/plain',
+        hash: 'abc123',
+        location: '/storage/test-object.txt',
+        revision: 1,
+        createdAt: now.minus({ days: 1 }),
+        updatedAt: now.minus({ days: 1 }),
       },
       {
         id: 2,
         uuid: generateUuid(),
-        objectId: 1,
-        objectUuid: 'test-uuid',
-        size: 1024,
-        versionNumber: 2,
-        metadata: { author: 'Test User', comment: 'New version' },
-        createdAt: DateTime.now()
+        name: 'test-object.txt',
+        folderId: 1,
+        userId: 1,
+        mimeType: 'text/plain',
+        hash: 'def456',
+        location: '/storage/test-object.txt',
+        revision: 2,
+        createdAt: now,
+        updatedAt: now,
       }
-    ]
+    ] as unknown as ObjectModel[]
 
-    const mockRepository = this.mock(objectRepository)
-    mockRepository.expects('listRevisions').once().withArgs('test-uuid').resolves(mockVersions)
+    // Create stubs
+    const getRevisionsStub = sinon.stub(objectRepository, 'getRevisions')
+    getRevisionsStub.withArgs(objectId).resolves(expectedRevisions)
 
-    return objectRepository.listRevisions('test-uuid').then(results => {
-      test.assert.equal(results.length, 2)
-      test.assert.equal(results[0].versionNumber, 1)
-      test.assert.equal(results[1].versionNumber, 2)
-      mockRepository.verify()
-    })
-  }))
+    try {
+      // Act
+      const results = await objectRepository.getRevisions(objectId)
+
+      // Assert
+      assert.lengthOf(results, 2)
+      assert.equal(results[0].revision, 1)
+      assert.equal(results[1].revision, 2)
+      
+      sinon.assert.calledOnce(getRevisionsStub)
+      sinon.assert.calledWith(getRevisionsStub, objectId)
+    } finally {
+      // Clean up
+      getRevisionsStub.restore()
+    }
+  })
+
+  test('listRevisions - should list all revisions of an object by uuid', async ({ assert }) => {
+    // Arrange
+    const now = DateTime.now()
+    const objectUuid = generateUuid()
+    
+    const expectedRevisions = [
+      {
+        id: 1,
+        uuid: objectUuid,
+        name: 'test-object.txt',
+        folderId: 1,
+        userId: 1,
+        mimeType: 'text/plain',
+        hash: 'abc123',
+        location: '/storage/test-object.txt',
+        revision: 1,
+        createdAt: now.minus({ days: 1 }),
+        updatedAt: now.minus({ days: 1 }),
+      },
+      {
+        id: 2,
+        uuid: generateUuid(),
+        name: 'test-object.txt',
+        folderId: 1,
+        userId: 1,
+        mimeType: 'text/plain',
+        hash: 'def456',
+        location: '/storage/test-object.txt',
+        revision: 2,
+        createdAt: now,
+        updatedAt: now,
+      }
+    ] as unknown as ObjectModel[]
+
+    // Create stubs
+    const listRevisionsStub = sinon.stub(objectRepository, 'listRevisions')
+    listRevisionsStub.withArgs(objectUuid).resolves(expectedRevisions)
+
+    try {
+      // Act
+      const results = await objectRepository.listRevisions(objectUuid)
+
+      // Assert
+      assert.lengthOf(results, 2)
+      assert.equal(results[0].revision, 1)
+      assert.equal(results[1].revision, 2)
+      
+      sinon.assert.calledOnce(listRevisionsStub)
+      sinon.assert.calledWith(listRevisionsStub, objectUuid)
+    } finally {
+      // Clean up
+      listRevisionsStub.restore()
+    }
+  })
+
+  test('delete - should delete an object', async ({ assert }) => {
+    // Arrange
+    const objectId = 1
+
+    // Create stubs
+    const deleteStub = sinon.stub(objectRepository, 'delete')
+    deleteStub.withArgs(objectId).resolves()
+
+    try {
+      // Act
+      await objectRepository.delete(objectId)
+
+      // Assert
+      sinon.assert.calledOnce(deleteStub)
+      sinon.assert.calledWith(deleteStub, objectId)
+    } finally {
+      // Clean up
+      deleteStub.restore()
+    }
+  })
+
+  test('list - should return a list of all objects', async ({ assert }) => {
+    // Arrange
+    const now = DateTime.now()
+    
+    const expectedObjects = [
+      {
+        id: 1,
+        uuid: generateUuid(),
+        name: 'test-object-1.txt',
+        folderId: 1,
+        userId: 1,
+        mimeType: 'text/plain',
+        hash: 'abc123',
+        location: '/storage/test-object-1.txt',
+        revision: 1,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: 2,
+        uuid: generateUuid(),
+        name: 'test-object-2.txt',
+        folderId: 2,
+        userId: 1,
+        mimeType: 'application/pdf',
+        hash: 'def456',
+        location: '/storage/test-object-2.txt',
+        revision: 1,
+        createdAt: now,
+        updatedAt: now,
+      }
+    ] as unknown as ObjectModel[]
+
+    // Create stubs
+    const listStub = sinon.stub(objectRepository, 'list')
+    listStub.resolves(expectedObjects)
+
+    try {
+      // Act
+      const results = await objectRepository.list()
+
+      // Assert
+      assert.lengthOf(results, 2)
+      assert.equal(results[0].id, expectedObjects[0].id)
+      assert.equal(results[1].id, expectedObjects[1].id)
+      
+      sinon.assert.calledOnce(listStub)
+    } finally {
+      // Clean up
+      listStub.restore()
+    }
+  })
 })

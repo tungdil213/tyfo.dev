@@ -7,6 +7,19 @@ export default class RoleRepository extends Repository<Role> implements RoleRepo
   constructor() {
     super(Role)
   }
+  
+  // Méthode list pour répondre aux tests utilisant cette méthode
+  public async list(): Promise<Role[]> {
+    return this.getAll()
+  }
+  
+  // Méthode remove pour répondre aux tests utilisant cette méthode
+  public async remove(uuid: string): Promise<void> {
+    const role = await this.findByUuid(uuid)
+    if (!role) throw new Error(`Role with uuid ${uuid} not found`)
+    
+    await role.delete()
+  }
 
   public async findByName(name: string): Promise<Role | null> {
     return await Role.findBy('name', name)
@@ -43,5 +56,19 @@ export default class RoleRepository extends Repository<Role> implements RoleRepo
 
     await role.load('permissions')
     return role.permissions.some((permission) => permission.id === permissionId)
+  }
+
+  public async createPermission(data: Partial<Permission>): Promise<Permission> {
+    return await Permission.create(data)
+  }
+
+  public async attachPermissionToRole(roleId: number, permissionId: number): Promise<void> {
+    // Cette méthode est un alias pour addPermissionToRole pour compatibilité avec les tests
+    return this.addPermissionToRole(roleId, permissionId)
+  }
+
+  public async detachPermissionFromRole(roleId: number, permissionId: number): Promise<void> {
+    // Cette méthode est un alias pour removePermissionFromRole pour compatibilité avec les tests
+    return this.removePermissionFromRole(roleId, permissionId)
   }
 }

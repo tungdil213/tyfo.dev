@@ -3,7 +3,16 @@ import AuthorizationException from '#exceptions/authorization_exception'
 import sinon from 'sinon'
 import { HttpContext } from '@adonisjs/core/http'
 
-test.group('AuthorizationException', () => {
+test.group('AuthorizationException', (group) => {
+  let sandbox: sinon.SinonSandbox
+
+  group.each.setup(() => {
+    sandbox = sinon.createSandbox()
+  })
+
+  group.each.teardown(() => {
+    sandbox.restore()
+  })
   test('should create an instance with correct default values', ({ assert }) => {
     const message = 'Unauthorized access'
     const exception = new AuthorizationException(message)
@@ -36,8 +45,8 @@ test.group('AuthorizationException', () => {
     
     // Mock HttpContext
     const mockResponse = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub(),
+      status: sandbox.stub().returnsThis(),
+      json: sandbox.stub(),
     }
     
     const mockCtx = {

@@ -3,7 +3,16 @@ import sinon from 'sinon'
 import { HttpContext } from '@adonisjs/core/http'
 import BaseException from '#exceptions/base_exception'
 
-test.group('BaseException', () => {
+test.group('BaseException', (group) => {
+  let sandbox: sinon.SinonSandbox
+
+  group.each.setup(() => {
+    sandbox = sinon.createSandbox()
+  })
+
+  group.each.teardown(() => {
+    sandbox.restore()
+  })
   test('should create an instance with default values', ({ assert }) => {
     const message = 'Test error message'
     const exception = new BaseException(message)
@@ -37,8 +46,8 @@ test.group('BaseException', () => {
     
     // Mock HttpContext
     const mockResponse = {
-      status: sinon.stub().returnsThis(),
-      json: sinon.stub(),
+      status: sandbox.stub().returnsThis(),
+      json: sandbox.stub(),
     }
     
     const mockCtx = {

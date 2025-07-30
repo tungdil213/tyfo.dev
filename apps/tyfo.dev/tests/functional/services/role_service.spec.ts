@@ -86,7 +86,7 @@ class TestRoleRepository implements Partial<RoleRepositoryContract> {
 
   async getRolePermissions(roleId: number) {
     const permissionIds = this.permissions.get(roleId) || []
-    return permissionIds.map(id => new MockPermission(id, `permission_${id}`))
+    return permissionIds.map((id) => new MockPermission(id, `permission_${id}`))
   }
 
   // Méthode pour aider les tests à configurer des permissions
@@ -111,39 +111,37 @@ class TestAttributionRepository implements Partial<AttributionRepositoryContract
   }
 
   async getUserAttributions(userId: number) {
-    return this.attributions.filter(attr => attr.userId === userId)
+    return this.attributions.filter((attr) => attr.userId === userId)
   }
 
   async getCircleAttributions(circleId: number) {
-    return this.attributions.filter(attr => attr.circleId === circleId)
+    return this.attributions.filter((attr) => attr.circleId === circleId)
   }
 
   async getRoleAttributions(roleId: number) {
-    return this.attributions.filter(attr => attr.roleId === roleId)
+    return this.attributions.filter((attr) => attr.roleId === roleId)
   }
 
   async getUserAttributionsInCircle(userId: number, circleId: number) {
-    return this.attributions.filter(
-      attr => attr.userId === userId && attr.circleId === circleId
-    )
+    return this.attributions.filter((attr) => attr.userId === userId && attr.circleId === circleId)
   }
 
   async hasAttribution(userId: number, roleId: number, circleId: number) {
     return this.attributions.some(
-      attr => attr.userId === userId && attr.roleId === roleId && attr.circleId === circleId
+      (attr) => attr.userId === userId && attr.roleId === roleId && attr.circleId === circleId
     )
   }
 
   async findByUserRoleAndCircle(userId: number, roleId: number, circleId: number) {
     const attribution = this.attributions.find(
-      attr => attr.userId === userId && attr.roleId === roleId && attr.circleId === circleId
+      (attr) => attr.userId === userId && attr.roleId === roleId && attr.circleId === circleId
     )
     return attribution || null
   }
 
   async removeAttribution(userId: number, roleId: number, circleId: number) {
     this.attributions = this.attributions.filter(
-      attr => !(attr.userId === userId && attr.roleId === roleId && attr.circleId === circleId)
+      (attr) => !(attr.userId === userId && attr.roleId === roleId && attr.circleId === circleId)
     )
   }
 
@@ -168,19 +166,30 @@ class TestAttributionRepository implements Partial<AttributionRepositoryContract
   reset() {
     this.attributions = []
   }
+
+  async getUserRoles(userId: number) {
+    return this.attributions.filter((attr) => attr.userId === userId)
+  }
+
+  async getCircleAttributions(circleId: number) {
+    return this.attributions.filter((attr) => attr.circleId === circleId)
+  }
 }
 
 test.group('RoleService', (group) => {
   let service: RoleService
   let roleRepository: TestRoleRepository
   let attributionRepository: TestAttributionRepository
+  let sandbox: sinon.SinonSandbox
   let userStub: sinon.SinonStub
   let roleStub: sinon.SinonStub
-  let permissionStub: sinon.SinonStub
   let circleStub: sinon.SinonStub
-  let attributionStub: sinon.SinonStub
+  let permissionStub: sinon.SinonStub
+  let attributionCreateStub: sinon.SinonStub
+  let attributionStub: any
 
   group.each.setup(() => {
+    sandbox = sinon.createSandbox()
     roleRepository = new TestRoleRepository()
     attributionRepository = new TestAttributionRepository()
     service = new RoleService(
@@ -189,36 +198,25 @@ test.group('RoleService', (group) => {
     )
 
     // Stubs pour les modèles Lucid
-    userStub = sinon.stub(User, 'findBy')
-    roleStub = sinon.stub(Role, 'findBy')
-    roleStub.withArgs('uuid', sinon.match.string).resolves(new MockRole(1, 'role-uuid', 'Admin'))
-    permissionStub = sinon.stub(Permission, 'findBy')
-    circleStub = sinon.stub(Circle, 'findBy')
-    attributionStub = sinon.stub(Attribution, 'create')
-
-    // Simuler la méthode statique query() de Role
-    sinon.stub(Role, 'query').returns({
-      whereIn: (field: string, ids: number[]) => {
-        return {
-          exec: async () => {
-            return ids.map(id => new MockRole(id, `role-${id}-uuid`, `Role ${id}`))
-          },
-        }
-      },
-    })
-
+    userStub = sandbox.stub(User, 'findBy')
+    roleStub = sandbox.stub(Role, 'findBy')
+    circleStub = sandbox.stub(Circle, 'findBy')
+    permissionStub = sandbox.stub(Permission, 'findBy')
+    attributionCreateStub = sandbox.stub(Attribution, 'create')
+    
     // Simuler la méthode statique query() de Attribution
-    sinon.stub(Attribution, 'query').returns({
+    const queryStub = sandbox.stub(Attribution, 'query')
+    attributionStub = {
+      first: sandbox.stub(),
+      delete: sandbox.stub().resolves({}),
+    }
+    queryStub.returns({
       where: (field: string, value: any) => {
         return {
           where: (field2: string, value2: any) => {
             return {
-              first: async () => {
-                return value && value2 ? { id: 1 } : null
-              },
-              delete: async () => {
-                return {}
-              },
+              first: attributionStub.first,
+              delete: attributionStub.delete,
             }
           },
         }
@@ -227,7 +225,7 @@ test.group('RoleService', (group) => {
   })
 
   group.each.teardown(() => {
-    sinon.restore()
+    sandbox.restore()
   })
 
   test('assignRole should create a user-role attribution', async ({ assert }) => {
@@ -238,27 +236,31 @@ test.group('RoleService', (group) => {
     
     userStub.withArgs('uuid', userId).resolves(user)
     roleStub.withArgs('uuid', roleId).resolves(role)
-    attributionStub.resolves({ id: 1, userId: 1, roleId: 1, circleId: null })
+    attributionStub.first.resolves({ id: 1, userId: 1, roleId: 1, circleId: null })
 
     await service.assignRole(userId, roleId)
     
     assert.isTrue(userStub.calledWith('uuid', userId))
     assert.isTrue(roleStub.calledWith('uuid', roleId))
-    assert.isTrue(attributionStub.calledOnce)
-    assert.deepEqual(attributionStub.firstCall.args[0], {
+    assert.isTrue(attributionCreateStub.calledOnce)
+    assert.deepEqual(attributionCreateStub.firstCall.args[0], {
       userId: 1,
       roleId: 1,
       circleId: null,
     })
   })
 
-  test('assignRole should throw if user not found', async ({ assert }) => {
+  test('assignRole should throw NotFoundException if user not found', async ({ assert }) => {
+    // Setup
     userStub.withArgs('uuid', 'non-existent').resolves(null)
-
-    await assert.rejects(
-      () => service.assignRole('non-existent', 'role-uuid'),
-      NotFoundException
-    )
+    
+    // Assertion
+    try {
+      await service.assignRole('non-existent', 'role-uuid')
+      assert.fail('Expected method to throw NotFoundException')
+    } catch (error) {
+      assert.equal(error.name, 'NotFoundException')
+    }
   })
 
   test('assignRole should throw if role not found', async ({ assert }) => {
@@ -266,10 +268,35 @@ test.group('RoleService', (group) => {
     userStub.withArgs('uuid', 'user-uuid').resolves(user)
     roleStub.withArgs('uuid', 'non-existent').resolves(null)
 
-    await assert.rejects(
-      () => service.assignRole('user-uuid', 'non-existent'),
-      NotFoundException
-    )
+    try {
+      await service.assignRole('user-uuid', 'non-existent')
+      assert.fail('Expected method to throw NotFoundException')
+    } catch (error) {
+      assert.equal(error.name, 'NotFoundException')
+    }
+  })
+
+  test('removeRole should throw if user not found', async ({ assert }) => {
+    userStub.withArgs('uuid', 'non-existent').resolves(null)
+
+    try {
+      await service.removeRole('non-existent', 'role-uuid')
+      assert.fail('Expected method to throw NotFoundException')
+    } catch (error) {
+      assert.equal(error.name, 'NotFoundException')
+    }
+  })
+
+  test('removeRole should throw if role not found', async ({ assert }) => {
+    userStub.withArgs('uuid', 'user-uuid').resolves(new MockUser(1, 'user-uuid'))
+    roleStub.withArgs('uuid', 'non-existent').resolves(null)
+
+    try {
+      await service.removeRole('user-uuid', 'non-existent')
+      assert.fail('Expected method to throw NotFoundException')
+    } catch (error) {
+      assert.equal(error.name, 'NotFoundException')
+    }
   })
 
   test('removeRole should delete user-role attributions', async ({ assert }) => {
@@ -297,7 +324,7 @@ test.group('RoleService', (group) => {
     permissionStub.withArgs('action', permissionAction).resolves(permission)
 
     // Espionner la méthode related
-    const relatedSpy = sinon.spy(role, 'related')
+    const relatedSpy = sandbox.spy(role, 'related')
     
     await service.assignPermission(roleUuid, permissionAction)
     
@@ -314,12 +341,12 @@ test.group('RoleService', (group) => {
     roleStub.withArgs('uuid', roleUuid).resolves(role)
     permissionStub.withArgs('action', permissionAction).resolves(null)
     
-    const permissionCreateStub = sinon.stub(Permission, 'create').resolves(
+    const permissionCreateStub = sandbox.stub(Permission, 'create').resolves(
       new MockPermission(1, permissionAction)
     )
 
     // Espionner la méthode related
-    const relatedSpy = sinon.spy(role, 'related')
+    const relatedSpy = sandbox.spy(role, 'related')
     
     await service.assignPermission(roleUuid, permissionAction)
     
@@ -339,7 +366,7 @@ test.group('RoleService', (group) => {
     permissionStub.withArgs('action', permissionAction).resolves(permission)
 
     // Espionner la méthode related
-    const relatedSpy = sinon.spy(role, 'related')
+    const relatedSpy = sandbox.spy(role, 'related')
     
     await service.removePermission(roleUuid, permissionAction)
     
@@ -385,7 +412,7 @@ test.group('RoleService', (group) => {
   })
 
   test('listRoles should return all roles', async ({ assert }) => {
-    const rolesQueryStub = sinon.stub(Role, 'all').resolves([
+    const rolesQueryStub = sandbox.stub(Role, 'all').resolves([
       new MockRole(1, 'role1-uuid', 'Admin'),
       new MockRole(2, 'role2-uuid', 'Editor'),
     ])
@@ -428,6 +455,16 @@ test.group('RoleService', (group) => {
     attributionRepository.addAttribution(1, 1, 1) // user 1, role 1, circle 1
     attributionRepository.addAttribution(2, 2, 1) // user 2, role 2, circle 1
     
+    // Mock Role.query().whereIn() pour retourner les rôles
+    const mockRoles = [new MockRole(1, 'role1-uuid', 'Role 1'), new MockRole(2, 'role2-uuid', 'Role 2')]
+    const mockQueryBuilder = {
+      whereIn: sandbox.stub().returnsThis(),
+    }
+    // Create a Role.query stub using the sandbox to ensure proper cleanup
+    const roleQueryStub = sandbox.stub(Role, 'query').returns(mockQueryBuilder as any)
+    // Simuler le comportement de whereIn en retournant les rôles mockés
+    mockQueryBuilder.whereIn.withArgs('id', [1, 2]).resolves(mockRoles)
+    
     const roles = await service.listRolesByCircleUuid(circleUuid)
     
     assert.isTrue(circleStub.calledWith('uuid', circleUuid))
@@ -447,6 +484,16 @@ test.group('RoleService', (group) => {
     attributionRepository.addAttribution(userId, 1, 1) // user 1, role 1, circle 1
     attributionRepository.addAttribution(userId, 2, 1) // user 1, role 2, circle 1
     attributionRepository.addAttribution(2, 3, 1) // user 2, role 3, circle 1 (ne devrait pas être inclus)
+    
+    // Mock Role.query().whereIn() pour retourner les rôles
+    const mockRoles = [new MockRole(1, 'role1-uuid', 'Role 1'), new MockRole(2, 'role2-uuid', 'Role 2')]
+    const mockQueryBuilder = {
+      whereIn: sandbox.stub().returnsThis(),
+    }
+    // Create a Role.query stub using the sandbox to ensure proper cleanup
+    const roleQueryStub = sandbox.stub(Role, 'query').returns(mockQueryBuilder as any)
+    // Simuler le comportement de whereIn en retournant les rôles mockés
+    mockQueryBuilder.whereIn.withArgs('id', [1, 2]).resolves(mockRoles)
     
     const roles = await service.listRolesByCircleAndUser(circleUuid, userId)
     

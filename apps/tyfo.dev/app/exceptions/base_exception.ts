@@ -26,10 +26,10 @@ export default class BaseException extends Exception {
   /**
    * Assainit le contexte pour éviter de journaliser des données sensibles
    */
-  private sanitizeContext(context: Record<string, any>): string {
+  protected sanitizeContext(context: Record<string, any>): string {
     // Masquage des données sensibles
     const sanitized = { ...context }
-    const sensitiveKeys = ['password', 'token', 'secret', 'apiKey']
+    const sensitiveKeys = ['password', 'token', 'secret', 'apikey'] // apiKey en minuscule
 
     for (const key of Object.keys(sanitized)) {
       if (sensitiveKeys.some((sk) => key.toLowerCase().includes(sk))) {

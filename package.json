@@ -21,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@julr/tooling-configs": "^4.0.0",
+		"@types/sinon": "^17.0.4",
 		"eslint": "^9.21.0",
 		"prettier": "^3.5.2",
 		"prettier-edgejs": "^0.2.35",
