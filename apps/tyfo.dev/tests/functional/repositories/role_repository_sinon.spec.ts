@@ -1,10 +1,10 @@
 /**
  * @fileoverview Tests mockés pour le RoleRepository utilisant Sinon
- * 
+ *
  * Ce fichier implémente une version mockée du RoleRepository avec Sinon
  * qui permet d'exécuter des tests sans dépendre d'une base de données réelle.
  * Cette approche présente plusieurs avantages :
- * 
+ *
  * 1. Sécurité : Pas d'accès aux données sensibles en production
  * 2. Vitesse : Tests plus rapides sans opérations de base de données
  * 3. Isolement : Tests indépendants de l'état de la base de données
@@ -19,7 +19,7 @@ import sinon from 'sinon'
 
 test.group('RoleRepository (Sinon mock)', (group) => {
   let roleRepository: RoleRepository
-  
+
   group.setup(async () => {
     roleRepository = new RoleRepository()
   })
@@ -32,8 +32,12 @@ test.group('RoleRepository (Sinon mock)', (group) => {
       description: 'Test Description',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      merge: function() { return this },
-      save: function() { return this }
+      merge: function () {
+        return this
+      },
+      save: function () {
+        return this
+      },
     }
 
     // Utiliser un stub au lieu d'un mock
@@ -43,20 +47,22 @@ test.group('RoleRepository (Sinon mock)', (group) => {
     // Exécuter l'opération
     const result = await roleRepository.create({
       name: 'Test Role',
-      description: 'Test Description'
+      description: 'Test Description',
     })
-    
+
     // Vérifier le résultat
     assert.equal(result.name, 'Test Role')
     assert.equal(result.description, 'Test Description')
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(createStub.calledOnce)
-    assert.isTrue(createStub.calledWith({
-      name: 'Test Role',
-      description: 'Test Description'
-    }))
-    
+    assert.isTrue(
+      createStub.calledWith({
+        name: 'Test Role',
+        description: 'Test Description',
+      })
+    )
+
     // Ne pas oublier de restaurer le stub après le test
     createStub.restore()
   })
@@ -69,8 +75,12 @@ test.group('RoleRepository (Sinon mock)', (group) => {
       description: 'Test Description',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      merge: function() { return this },
-      save: function() { return this }
+      merge: function () {
+        return this
+      },
+      save: function () {
+        return this
+      },
     }
 
     // Utiliser un stub au lieu d'un mock
@@ -79,16 +89,16 @@ test.group('RoleRepository (Sinon mock)', (group) => {
 
     // Exécuter l'opération
     const result = await roleRepository.findByUuid(mockRole.uuid)
-    
+
     // Vérifier le résultat
     assert.equal(result?.uuid, mockRole.uuid)
     assert.equal(result?.name, mockRole.name)
     assert.equal(result?.description, mockRole.description)
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(findByUuidStub.calledOnce)
     assert.isTrue(findByUuidStub.calledWith(mockRole.uuid))
-    
+
     // Ne pas oublier de restaurer le stub après le test
     findByUuidStub.restore()
   })
@@ -101,8 +111,12 @@ test.group('RoleRepository (Sinon mock)', (group) => {
       description: 'Administrator Role',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      merge: function() { return this },
-      save: function() { return this }
+      merge: function () {
+        return this
+      },
+      save: function () {
+        return this
+      },
     }
 
     // Utiliser un stub au lieu d'un mock
@@ -111,11 +125,11 @@ test.group('RoleRepository (Sinon mock)', (group) => {
 
     const result = await roleRepository.findByName('Admin')
     assert.equal(result?.name, 'Admin')
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(findByNameStub.calledOnce)
     assert.isTrue(findByNameStub.calledWith('Admin'))
-    
+
     // Restaurer le stub après le test
     findByNameStub.restore()
   })
@@ -129,8 +143,12 @@ test.group('RoleRepository (Sinon mock)', (group) => {
         description: 'Administrator Role',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        merge: function() { return this },
-        save: function() { return this }
+        merge: function () {
+          return this
+        },
+        save: function () {
+          return this
+        },
       },
       {
         id: 2,
@@ -139,9 +157,13 @@ test.group('RoleRepository (Sinon mock)', (group) => {
         description: 'Editor Role',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        merge: function() { return this },
-        save: function() { return this }
-      }
+        merge: function () {
+          return this
+        },
+        save: function () {
+          return this
+        },
+      },
     ]
 
     // Utiliser un stub au lieu d'un mock
@@ -152,10 +174,10 @@ test.group('RoleRepository (Sinon mock)', (group) => {
     assert.equal(results.length, 2)
     assert.equal(results[0].name, 'Admin')
     assert.equal(results[1].name, 'Editor')
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(listStub.calledOnce)
-    
+
     // Restaurer le stub après le test
     listStub.restore()
   })
@@ -168,32 +190,40 @@ test.group('RoleRepository (Sinon mock)', (group) => {
       description: 'Updated Description',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      merge: function() { return this },
-      save: function() { return this }
+      merge: function () {
+        return this
+      },
+      save: function () {
+        return this
+      },
     }
 
     // Utiliser un stub au lieu d'un mock
     const updateStub = sinon.stub(roleRepository, 'update')
-    updateStub.withArgs('test-uuid', {
-      name: 'Updated Role',
-      description: 'Updated Description'
-    }).resolves(mockUpdatedRole)
+    updateStub
+      .withArgs('test-uuid', {
+        name: 'Updated Role',
+        description: 'Updated Description',
+      })
+      .resolves(mockUpdatedRole)
 
     const result = await roleRepository.update('test-uuid', {
       name: 'Updated Role',
-      description: 'Updated Description'
+      description: 'Updated Description',
     })
-    
+
     assert.equal(result?.name, 'Updated Role')
     assert.equal(result?.description, 'Updated Description')
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(updateStub.calledOnce)
-    assert.isTrue(updateStub.calledWith('test-uuid', {
-      name: 'Updated Role',
-      description: 'Updated Description'
-    }))
-    
+    assert.isTrue(
+      updateStub.calledWith('test-uuid', {
+        name: 'Updated Role',
+        description: 'Updated Description',
+      })
+    )
+
     // Restaurer le stub après le test
     updateStub.restore()
   })
@@ -204,11 +234,11 @@ test.group('RoleRepository (Sinon mock)', (group) => {
     removeStub.withArgs('test-uuid').resolves()
 
     await roleRepository.remove('test-uuid')
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(removeStub.calledOnce)
     assert.isTrue(removeStub.calledWith('test-uuid'))
-    
+
     // Restaurer le stub après le test
     removeStub.restore()
   })
@@ -220,28 +250,36 @@ test.group('RoleRepository (Sinon mock)', (group) => {
       action: 'read',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      merge: function() { return this },
-      save: function() { return this }
+      merge: function () {
+        return this
+      },
+      save: function () {
+        return this
+      },
     }
 
     // Utiliser un stub au lieu d'un mock
     const createPermissionStub = sinon.stub(roleRepository, 'createPermission')
-    createPermissionStub.withArgs({
-      action: 'read'
-    }).resolves(mockPermission)
+    createPermissionStub
+      .withArgs({
+        action: 'read',
+      })
+      .resolves(mockPermission)
 
     const result = await roleRepository.createPermission({
-      action: 'read'
+      action: 'read',
     })
-    
+
     assert.equal(result?.action, 'read')
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(createPermissionStub.calledOnce)
-    assert.isTrue(createPermissionStub.calledWith({
-      action: 'read'
-    }))
-    
+    assert.isTrue(
+      createPermissionStub.calledWith({
+        action: 'read',
+      })
+    )
+
     // Restaurer le stub après le test
     createPermissionStub.restore()
   })
@@ -252,31 +290,33 @@ test.group('RoleRepository (Sinon mock)', (group) => {
     attachPermissionToRoleStub.withArgs(1, 2).resolves()
 
     await roleRepository.attachPermissionToRole(1, 2)
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(attachPermissionToRoleStub.calledOnce)
     assert.isTrue(attachPermissionToRoleStub.calledWith(1, 2))
-    
+
     // Restaurer le stub après le test
     attachPermissionToRoleStub.restore()
   })
 
-  test('detachPermissionFromRole - devrait dissocier une permission d\'un rôle', async ({ assert }) => {
+  test("detachPermissionFromRole - devrait dissocier une permission d'un rôle", async ({
+    assert,
+  }) => {
     // Utiliser un stub au lieu d'un mock
     const detachPermissionFromRoleStub = sinon.stub(roleRepository, 'detachPermissionFromRole')
     detachPermissionFromRoleStub.withArgs(1, 2).resolves()
 
     await roleRepository.detachPermissionFromRole(1, 2)
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(detachPermissionFromRoleStub.calledOnce)
     assert.isTrue(detachPermissionFromRoleStub.calledWith(1, 2))
-    
+
     // Restaurer le stub après le test
     detachPermissionFromRoleStub.restore()
   })
 
-  test('getRolePermissions - devrait récupérer les permissions d\'un rôle', async ({ assert }) => {
+  test("getRolePermissions - devrait récupérer les permissions d'un rôle", async ({ assert }) => {
     const mockPermissions = [
       {
         id: 1,
@@ -284,8 +324,12 @@ test.group('RoleRepository (Sinon mock)', (group) => {
         action: 'read',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        merge: function() { return this },
-        save: function() { return this }
+        merge: function () {
+          return this
+        },
+        save: function () {
+          return this
+        },
       },
       {
         id: 2,
@@ -293,9 +337,13 @@ test.group('RoleRepository (Sinon mock)', (group) => {
         action: 'write',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        merge: function() { return this },
-        save: function() { return this }
-      }
+        merge: function () {
+          return this
+        },
+        save: function () {
+          return this
+        },
+      },
     ]
 
     // Utiliser un stub au lieu d'un mock
@@ -306,11 +354,11 @@ test.group('RoleRepository (Sinon mock)', (group) => {
     assert.equal(results.length, 2)
     assert.equal(results[0].action, 'read')
     assert.equal(results[1].action, 'write')
-    
+
     // Vérifier que la méthode a été appelée correctement
     assert.isTrue(getRolePermissionsStub.calledOnce)
     assert.isTrue(getRolePermissionsStub.calledWith(1))
-    
+
     // Restaurer le stub après le test
     getRolePermissionsStub.restore()
   })

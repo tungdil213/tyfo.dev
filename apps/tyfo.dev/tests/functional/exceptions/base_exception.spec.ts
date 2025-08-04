@@ -28,7 +28,7 @@ test.group('BaseException', (group) => {
     const code = 'E_CUSTOM_ERROR'
     const status = 418
     const context = { foo: 'bar' }
-    
+
     const exception = new BaseException(message, code, status, context)
 
     assert.equal(exception.message, message)
@@ -41,15 +41,15 @@ test.group('BaseException', (group) => {
     const message = 'API error'
     const code = 'E_API_ERROR'
     const status = 400
-    
+
     const exception = new BaseException(message, code, status)
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sandbox.stub().returnsThis(),
       json: sandbox.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext
@@ -81,7 +81,7 @@ test.group('BaseException', (group) => {
     }
 
     const exception = new BaseException(message, 'E_SECURITY', 403, sensitiveContext)
-    
+
     // Accessing private method for testing - we have to use any type to bypass TypeScript restrictions
     // In a real application, we might want to expose this method as protected for easier testing
     const sanitizedJson = (exception as any).sanitizeContext(sensitiveContext)

@@ -7,17 +7,17 @@ export default class RoleRepository extends Repository<Role> implements RoleRepo
   constructor() {
     super(Role)
   }
-  
+
   // Méthode list pour répondre aux tests utilisant cette méthode
   public async list(): Promise<Role[]> {
     return this.getAll()
   }
-  
+
   // Méthode remove pour répondre aux tests utilisant cette méthode
   public async remove(uuid: string): Promise<void> {
     const role = await this.findByUuid(uuid)
     if (!role) throw new Error(`Role with uuid ${uuid} not found`)
-    
+
     await role.delete()
   }
 

@@ -8,8 +8,10 @@ import { UserServiceContract } from './contracts/user_service_contract.js'
 import NotFoundException from '#exceptions/not_found_exception'
 
 @inject()
-export default class UserService extends BaseService<User, UserRepository>
-  implements UserServiceContract {
+export default class UserService
+  extends BaseService<User, UserRepository>
+  implements UserServiceContract
+{
   constructor(repository: UserRepository) {
     super(repository)
   }
@@ -97,11 +99,11 @@ export default class UserService extends BaseService<User, UserRepository>
 
     const role = await Role.findBy('uuid', roleUuid)
     const circle = await Circle.findBy('uuid', circleUuid)
-    
+
     if (!role || !circle) {
       throw new NotFoundException('Role or circle not found')
     }
-    
+
     // Créer l'attribution en utilisant le repository
     await this.repository.assignRoleToUser(userUuid, roleUuid, circleUuid)
   }
@@ -116,11 +118,11 @@ export default class UserService extends BaseService<User, UserRepository>
     }
 
     const role = await Role.findBy('uuid', roleUuid)
-    
+
     if (!role) {
       throw new NotFoundException('Role not found')
     }
-    
+
     // Retirer le rôle en utilisant le repository
     await this.repository.removeRoleFromUser(userUuid, roleUuid)
   }

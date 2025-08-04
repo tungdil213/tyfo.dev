@@ -1,10 +1,10 @@
 /**
  * @fileoverview Tests mockés pour le FolderRepository utilisant Sinon
- * 
+ *
  * Ce fichier implémente une version mockée du FolderRepository avec Sinon
  * qui permet d'exécuter des tests sans dépendre d'une base de données réelle.
  * Cette approche présente plusieurs avantages :
- * 
+ *
  * 1. Sécurité : Pas d'accès aux données sensibles en production
  * 2. Vitesse : Tests plus rapides sans opérations de base de données
  * 3. Isolement : Tests indépendants de l'état de la base de données
@@ -30,7 +30,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = generateUuid()
     const now = DateTime.now()
-    
+
     const folderData: Partial<Folder> = {
       name: 'Test Folder',
       description: 'Test Description',
@@ -64,7 +64,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
       assert.equal(result.description, expectedFolder.description)
       assert.equal(result.circleId, expectedFolder.circleId)
       assert.equal(result.userId, expectedFolder.userId)
-      
+
       sinon.assert.calledOnce(createStub)
       sinon.assert.calledWith(createStub, folderData)
     } finally {
@@ -77,7 +77,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = 'test-uuid'
     const now = DateTime.now()
-    
+
     const expectedFolder = {
       id: 1,
       uuid,
@@ -103,9 +103,9 @@ test.group('FolderRepository (Sinon mock)', (group) => {
       // Assert
       assert.isNotNull(result)
       assert.equal(result?.uuid, uuid)
-      
+
       assert.isNull(nonExistentResult)
-      
+
       sinon.assert.calledTwice(findByUuidStub)
       sinon.assert.calledWith(findByUuidStub, uuid)
       sinon.assert.calledWith(findByUuidStub, 'non-existent-uuid')
@@ -119,7 +119,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = generateUuid()
     const now = DateTime.now()
-    
+
     const expectedFolder = {
       id: 1,
       uuid,
@@ -148,9 +148,9 @@ test.group('FolderRepository (Sinon mock)', (group) => {
         assert.equal(result.id, expectedFolder.id)
         assert.equal(result.name, expectedFolder.name)
       }
-      
+
       assert.isNull(nonExistentResult)
-      
+
       sinon.assert.calledTwice(findByIdStub)
       sinon.assert.calledWith(findByIdStub, 1)
       sinon.assert.calledWith(findByIdStub, 999)
@@ -160,11 +160,11 @@ test.group('FolderRepository (Sinon mock)', (group) => {
     }
   })
 
-  test('findByCircle - devrait trouver les dossiers d\'un cercle', async ({ assert }) => {
+  test("findByCircle - devrait trouver les dossiers d'un cercle", async ({ assert }) => {
     // Arrange
     const now = DateTime.now()
     const circleId = 1
-    
+
     const expectedFolders = [
       {
         id: 1,
@@ -187,7 +187,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
         parentId: null,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as Folder[]
 
     // Create stubs
@@ -204,9 +204,9 @@ test.group('FolderRepository (Sinon mock)', (group) => {
       assert.lengthOf(results, 2)
       assert.equal(results[0].name, 'Documents')
       assert.equal(results[1].name, 'Photos')
-      
+
       assert.isEmpty(emptyResults)
-      
+
       sinon.assert.calledTwice(findByCircleStub)
       sinon.assert.calledWith(findByCircleStub, circleId)
       sinon.assert.calledWith(findByCircleStub, 999)
@@ -216,11 +216,13 @@ test.group('FolderRepository (Sinon mock)', (group) => {
     }
   })
 
-  test('findByParent - devrait trouver les dossiers enfants d\'un dossier parent', async ({ assert }) => {
+  test("findByParent - devrait trouver les dossiers enfants d'un dossier parent", async ({
+    assert,
+  }) => {
     // Arrange
     const now = DateTime.now()
     const parentId = 1
-    
+
     const expectedFolders = [
       {
         id: 2,
@@ -243,7 +245,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
         parentId,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as Folder[]
 
     // Create stubs
@@ -262,9 +264,9 @@ test.group('FolderRepository (Sinon mock)', (group) => {
       assert.equal(results[1].name, 'Photos')
       assert.equal(results[0].parentId, parentId)
       assert.equal(results[1].parentId, parentId)
-      
+
       assert.isEmpty(emptyResults)
-      
+
       sinon.assert.calledTwice(findByParentStub)
       sinon.assert.calledWith(findByParentStub, parentId)
       sinon.assert.calledWith(findByParentStub, 999)
@@ -274,11 +276,11 @@ test.group('FolderRepository (Sinon mock)', (group) => {
     }
   })
 
-  test('getPath - devrait retourner le chemin d\'un dossier', async ({ assert }) => {
+  test("getPath - devrait retourner le chemin d'un dossier", async ({ assert }) => {
     // Arrange
     const now = DateTime.now()
     const folderId = 3
-    
+
     const expectedPath = [
       {
         id: 1,
@@ -312,7 +314,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
         parentId: 2,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as Folder[]
 
     // Create stubs
@@ -328,7 +330,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
       assert.equal(results[0].name, 'Root')
       assert.equal(results[1].name, 'Documents')
       assert.equal(results[2].name, 'Projects')
-      
+
       sinon.assert.calledOnce(getPathStub)
       sinon.assert.calledWith(getPathStub, folderId)
     } finally {
@@ -341,7 +343,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = 'test-uuid'
     const now = DateTime.now()
-    
+
     const folderData: Partial<Folder> = {
       name: 'Updated Folder',
       description: 'Updated Description',
@@ -370,7 +372,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
       // Assert
       assert.equal(result.name, expectedFolder.name)
       assert.equal(result.description, expectedFolder.description)
-      
+
       sinon.assert.calledOnce(updateStub)
       sinon.assert.calledWith(updateStub, uuid, folderData)
     } finally {
@@ -403,7 +405,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
   test('list - devrait retourner une liste de tous les dossiers', async ({ assert }) => {
     // Arrange
     const now = DateTime.now()
-    
+
     const expectedFolders = [
       {
         id: 1,
@@ -426,7 +428,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
         parentId: 1,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as Folder[]
 
     // Create stubs
@@ -441,7 +443,7 @@ test.group('FolderRepository (Sinon mock)', (group) => {
       assert.lengthOf(results, 2)
       assert.equal(results[0].id, expectedFolders[0].id)
       assert.equal(results[1].id, expectedFolders[1].id)
-      
+
       sinon.assert.calledOnce(listStub)
     } finally {
       // Clean up

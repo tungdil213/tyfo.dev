@@ -1,0 +1,367 @@
+# Tyfo.dev Project Windsurf Rules
+# Configuration complète pour l'assistant Windsurf AI
+
+# Information générale sur le projet
+project:
+  name: Tyfo.dev
+  description: Plateforme collaborative de gestion de fichiers avec gestion avancée des utilisateurs, rôles et cercles
+  repository: https://github.com/tungdil213/tyfo.dev
+  root: apps/tyfo.dev
+  structure: monorepo
+  packageManager: pnpm
+  containerization: Docker
+
+# Architecture technique
+architecture:
+  backend: AdonisJS
+  frontend: React
+  styling: TailwindCSS
+  viewEngine: InertiaJS
+  database: PostgreSQL
+  authentication: JWT
+  testing: Jest
+  apiVersion: v1
+  apiBasePath: /api/v1
+
+# Répertoires importants
+directories:
+  app: apps/tyfo.dev/app
+  config: apps/tyfo.dev/config
+  tests:
+    functional: apps/tyfo.dev/tests/functional
+    unit: apps/tyfo.dev/tests/unit
+    e2e: apps/tyfo.dev/tests/e2e
+  docs: apps/tyfo.dev/docs/implementation
+  contracts: apps/tyfo.dev/app/Contracts
+  services: apps/tyfo.dev/app/Services
+  repositories: apps/tyfo.dev/app/Repositories
+  models: apps/tyfo.dev/app/Models
+  migrations: apps/tyfo.dev/database/migrations
+  seeds: apps/tyfo.dev/database/seeders
+  commands: apps/tyfo.dev/commands
+
+# Commandes principales
+scripts:
+  test: cd apps/tyfo.dev && pnpm run test
+  lint: cd apps/tyfo.dev && pnpm run lint
+  migrate: cd apps/tyfo.dev && node ace migration:run
+  seed: cd apps/tyfo.dev && node ace db:seed
+  reset: cd apps/tyfo.dev && node ace db:wipe && node ace migration:run && node ace db:seed
+  dev: cd apps/tyfo.dev && node ace serve --watch
+
+# Entités et modèles du domaine
+entities:
+  - name: User
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: fullName
+        type: string
+      - name: email
+        type: string
+        unique: true
+      - name: password
+        type: string
+        protected: true
+      - name: isArchived
+        type: boolean
+        default: false
+    relations:
+      - name: roles
+        type: manyToMany
+        entity: Role
+        through: Attribution
+      - name: circles
+        type: manyToMany
+        entity: Circle
+        through: Attribution
+      - name: files
+        type: oneToMany
+        entity: File
+  
+  - name: Role
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: name
+        type: string
+        unique: true
+      - name: description
+        type: string
+        required: true
+    relations:
+      - name: users
+        type: manyToMany
+        entity: User
+        through: Attribution
+
+  - name: Circle
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: name
+        type: string
+      - name: description
+        type: string
+        required: true
+      - name: user_id
+        type: string
+        required: true
+      - name: isArchived
+        type: boolean
+        default: false
+    relations:
+      - name: users
+        type: manyToMany
+        entity: User
+        through: Attribution
+      - name: owner
+        type: belongsTo
+        entity: User
+
+  - name: Attribution
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: user_id
+        type: string
+        required: true
+      - name: role_id
+        type: string
+        required: true
+      - name: circle_id
+        type: string
+        required: true
+    relations:
+      - name: user
+        type: belongsTo
+        entity: User
+      - name: role
+        type: belongsTo
+        entity: Role
+      - name: circle
+        type: belongsTo
+        entity: Circle
+
+  - name: File
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: name
+        type: string
+      - name: path
+        type: string
+      - name: user_id
+        type: string
+      - name: isArchived
+        type: boolean
+        default: false
+      - name: metadata
+        type: json
+    relations:
+      - name: user
+        type: belongsTo
+        entity: User
+      - name: versions
+        type: oneToMany
+        entity: Version
+
+  - name: Version
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: file_id
+        type: string
+      - name: version_number
+        type: integer
+      - name: content_hash
+        type: string
+      - name: created_at
+        type: datetime
+    relations:
+      - name: file
+        type: belongsTo
+        entity: File
+
+  - name: Notification
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: user_id
+        type: string
+      - name: title
+        type: string
+      - name: message
+        type: string
+      - name: type
+        type: string
+      - name: read
+        type: boolean
+        default: false
+      - name: created_at
+        type: datetime
+    relations:
+      - name: user
+        type: belongsTo
+        entity: User
+
+  - name: EventLog
+    fields:
+      - name: uuid
+        type: string
+        primary: true
+      - name: user_id
+        type: string
+      - name: action
+        type: string
+      - name: entity_type
+        type: string
+      - name: entity_id
+        type: string
+      - name: metadata
+        type: json
+      - name: created_at
+        type: datetime
+    relations:
+      - name: user
+        type: belongsTo
+        entity: User
+
+# Configuration des tests
+testing:
+  approach: TDD
+  resetDbBeforeEach: true
+  useFactories: true
+  assertionsPerTest: 1
+  preferSupertest: true
+  testScenarios:
+    - user-creation-flow
+    - file-upload-and-versioning
+    - role-assignment
+    - circle-management
+    - full-permission-check
+
+# Conventions de codage
+conventions:
+  userNameField: fullName
+  requireDescriptions:
+    - Role
+    - Circle
+  dateFormat: YYYY-MM-DDTHH:mm:ssZ
+  idField: uuid
+  defaultPagination: 25
+  softDelete: true
+  archivableEntities:
+    - User
+    - Circle
+    - File
+  fileUploadDirectory: tmp/uploads
+  fileStoragePath: storage/app/uploads
+
+# Permissions et sécurité
+permissions:
+  roles:
+    - admin
+    - editor
+    - viewer
+  defaultRole: viewer
+  roleHierarchy:
+    - admin
+    - editor
+    - viewer
+  roleAssignment: true
+  security:
+    auditLog: true
+    requireAuth: true
+    passwordPolicy:
+      minLength: 8
+      requireNumber: true
+      requireSpecial: true
+
+# API endpoints
+api:
+  auth:
+    strategy: jwt
+    loginEndpoint: /api/v1/auth/login
+    registerEndpoint: /api/v1/auth/register
+  endpoints:
+    users: /api/v1/users
+    roles: /api/v1/roles
+    circles: /api/v1/circles
+    files: /api/v1/files
+    notifications: /api/v1/notifications
+  paginationParam: page
+  perPageParam: perPage
+
+# Commandes CLI disponibles
+cli:
+  userCommands:
+    - create-user
+    - delete-user
+    - list-users
+    - assign-role
+  fileCommands:
+    - upload-file
+    - list-files
+    - delete-file
+    - file-history
+    - restore-file
+  circleCommands:
+    - create-circle
+    - archive-circle
+    - add-user-circle
+    - remove-user-circle
+    - list-circles
+
+# Intégration continue
+ci:
+  enabled: true
+  provider: GitHub Actions
+  testCommand: pnpm run test
+  lintCommand: pnpm run lint
+  branches:
+    main: production
+    develop: staging
+  triggers:
+    - push
+    - pullRequest
+  notifications:
+    success: false
+    failure: true
+
+# Configuration du comportement de l'assistant Windsurf
+windsurf:
+  preferredApproach: TDD
+  testFirst: true
+  verboseComments: true
+  prioritizeUserRequirements: true
+  checkForLintErrors: true
+  alwaysIncludeTests: true
+  suggestDocumentation: true
+  apisFirst: true
+  uiLast: true
+  assistWith:
+    - testing
+    - api
+    - database
+    - authentication
+    - fileFunctionality
+    - userManagement
+    - roleManagement
+    - circleManagement
+    - documentation
+  ignoredPatterns:
+    - node_modules
+    - .git
+    - tmp
+    - build
+    - dist
+  maxContextFiles: 50
+  maxSearchDepth: 5

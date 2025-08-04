@@ -1,10 +1,10 @@
 /**
  * @fileoverview Tests mockés pour le ObjectRepository utilisant Sinon
- * 
+ *
  * Ce fichier implémente une version mockée du ObjectRepository avec Sinon
  * qui permet d'exécuter des tests sans dépendre d'une base de données réelle.
  * Cette approche présente plusieurs avantages :
- * 
+ *
  * 1. Sécurité : Pas d'accès aux données sensibles en production
  * 2. Vitesse : Tests plus rapides sans opérations de base de données
  * 3. Isolement : Tests indépendants de l'état de la base de données
@@ -30,7 +30,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = generateUuid()
     const now = DateTime.now()
-    
+
     const objectData: Partial<ObjectModel> = {
       name: 'test-object.txt',
       folderId: 1,
@@ -72,7 +72,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       assert.equal(result.hash, expectedObject.hash)
       assert.equal(result.location, expectedObject.location)
       assert.equal(result.revision, expectedObject.revision)
-      
+
       sinon.assert.calledOnce(createStub)
       sinon.assert.calledWith(createStub, objectData)
     } finally {
@@ -85,7 +85,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = generateUuid()
     const now = DateTime.now()
-    
+
     const expectedObject = {
       id: 1,
       uuid,
@@ -117,9 +117,9 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         assert.equal(result.uuid, expectedObject.uuid)
         assert.equal(result.name, expectedObject.name)
       }
-      
+
       assert.isNull(nonExistentResult)
-      
+
       sinon.assert.calledTwice(findByUuidStub)
       sinon.assert.calledWith(findByUuidStub, uuid)
       sinon.assert.calledWith(findByUuidStub, 'non-existent-uuid')
@@ -133,7 +133,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = generateUuid()
     const now = DateTime.now()
-    
+
     const expectedObject = {
       id: 1,
       uuid,
@@ -165,9 +165,9 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         assert.equal(result.uuid, expectedObject.uuid)
         assert.equal(result.name, expectedObject.name)
       }
-      
+
       assert.isNull(nonExistentResult)
-      
+
       sinon.assert.calledTwice(findByIdStub)
       sinon.assert.calledWith(findByIdStub, 1)
       sinon.assert.calledWith(findByIdStub, 999)
@@ -180,7 +180,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
   test('findByFolder - should return objects from a specific folder', async ({ assert }) => {
     // Arrange
     const now = DateTime.now()
-    
+
     const expectedObjects = [
       {
         id: 1,
@@ -207,7 +207,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         revision: 1,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as ObjectModel[]
 
     // Create stubs
@@ -225,9 +225,9 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       assert.equal(results[0].id, expectedObjects[0].id)
       assert.equal(results[0].name, expectedObjects[0].name)
       assert.equal(results[1].id, expectedObjects[1].id)
-      
+
       assert.isEmpty(emptyResults)
-      
+
       sinon.assert.calledTwice(findByFolderStub)
       sinon.assert.calledWith(findByFolderStub, 1)
       sinon.assert.calledWith(findByFolderStub, 999)
@@ -242,7 +242,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     const uuid = generateUuid()
     const now = DateTime.now()
     const hash = 'abc123'
-    
+
     const expectedObject = {
       id: 1,
       uuid,
@@ -274,9 +274,9 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         assert.equal(result.hash, expectedObject.hash)
         assert.equal(result.name, expectedObject.name)
       }
-      
+
       assert.isNull(nonExistentResult)
-      
+
       sinon.assert.calledTwice(findByHashStub)
       sinon.assert.calledWith(findByHashStub, hash)
       sinon.assert.calledWith(findByHashStub, 'non-existent-hash')
@@ -290,7 +290,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     // Arrange
     const now = DateTime.now()
     const mimeType = 'text/plain'
-    
+
     const expectedObjects = [
       {
         id: 1,
@@ -317,7 +317,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         revision: 1,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as ObjectModel[]
 
     // Create stubs
@@ -334,9 +334,9 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       assert.lengthOf(results, 2)
       assert.equal(results[0].mimeType, mimeType)
       assert.equal(results[1].mimeType, mimeType)
-      
+
       assert.isEmpty(emptyResults)
-      
+
       sinon.assert.calledTwice(findByMimeTypeStub)
       sinon.assert.calledWith(findByMimeTypeStub, mimeType)
       sinon.assert.calledWith(findByMimeTypeStub, 'application/unknown')
@@ -350,7 +350,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     // Arrange
     const uuid = generateUuid()
     const now = DateTime.now()
-    
+
     const objectId = 1
     const updateData: Partial<ObjectModel> = {
       name: 'updated-object.txt',
@@ -381,7 +381,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       // Assert
       assert.equal(result.id, expectedObject.id)
       assert.equal(result.name, expectedObject.name)
-      
+
       sinon.assert.calledOnce(updateStub)
       sinon.assert.calledWith(updateStub, objectId, updateData)
     } finally {
@@ -394,7 +394,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     // Arrange
     const now = DateTime.now()
     const objectId = 1
-    
+
     const revisionData: Partial<ObjectModel> = {
       hash: 'newHash123',
       location: '/storage/new-location.txt',
@@ -428,7 +428,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       assert.equal(result.hash, expectedObject.hash)
       assert.equal(result.location, expectedObject.location)
       assert.equal(result.revision, expectedObject.revision)
-      
+
       sinon.assert.calledOnce(createRevisionStub)
       sinon.assert.calledWith(createRevisionStub, objectId, revisionData)
     } finally {
@@ -442,7 +442,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     const now = DateTime.now()
     const objectId = 1
     const baseUuid = generateUuid()
-    
+
     const expectedRevisions = [
       {
         id: 1,
@@ -469,7 +469,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         revision: 2,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as ObjectModel[]
 
     // Create stubs
@@ -484,7 +484,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       assert.lengthOf(results, 2)
       assert.equal(results[0].revision, 1)
       assert.equal(results[1].revision, 2)
-      
+
       sinon.assert.calledOnce(getRevisionsStub)
       sinon.assert.calledWith(getRevisionsStub, objectId)
     } finally {
@@ -497,7 +497,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
     // Arrange
     const now = DateTime.now()
     const objectUuid = generateUuid()
-    
+
     const expectedRevisions = [
       {
         id: 1,
@@ -524,7 +524,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         revision: 2,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as ObjectModel[]
 
     // Create stubs
@@ -539,7 +539,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       assert.lengthOf(results, 2)
       assert.equal(results[0].revision, 1)
       assert.equal(results[1].revision, 2)
-      
+
       sinon.assert.calledOnce(listRevisionsStub)
       sinon.assert.calledWith(listRevisionsStub, objectUuid)
     } finally {
@@ -572,7 +572,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
   test('list - should return a list of all objects', async ({ assert }) => {
     // Arrange
     const now = DateTime.now()
-    
+
     const expectedObjects = [
       {
         id: 1,
@@ -599,7 +599,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
         revision: 1,
         createdAt: now,
         updatedAt: now,
-      }
+      },
     ] as unknown as ObjectModel[]
 
     // Create stubs
@@ -614,7 +614,7 @@ test.group('ObjectRepository (Sinon mock)', (group) => {
       assert.lengthOf(results, 2)
       assert.equal(results[0].id, expectedObjects[0].id)
       assert.equal(results[1].id, expectedObjects[1].id)
-      
+
       sinon.assert.calledOnce(listStub)
     } finally {
       // Clean up

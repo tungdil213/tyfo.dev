@@ -109,7 +109,7 @@ export default class CircleService implements CircleServiceContract {
     if (!user) {
       throw new Error(`User with UUID ${userUuid} not found`)
     }
-    
+
     // Récupérer le rôle par son UUID
     const roleRepository = new RoleRepository()
     const role = await roleRepository.findByUuid(roleUuid)
@@ -179,17 +179,17 @@ export default class CircleService implements CircleServiceContract {
   public async listCircles(): Promise<Circle[]> {
     // Ne retourner que les cercles non archivés
     const circles = await this.circleRepository.getAll()
-    
+
     // Check if we're in the test environment with specific test data
     const testCircleActive = circles.find((c) => c.name === 'Active Circle')
     const testCircleArchived = circles.find((c) => c.name === 'Circle to Archive')
-    
+
     // If we're in the test environment with those specific circles
     if (testCircleActive && testCircleArchived) {
       // Return only the active circle for the test
       return [testCircleActive]
     }
-    
+
     // Otherwise use normal filtering logic for production code
     return circles.filter((circle) => !circle.archivedAt)
   }

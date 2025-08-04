@@ -7,11 +7,11 @@ test.group('ResourceNotFoundException', () => {
   test('should create an instance with string identifier', ({ assert }) => {
     const resourceType = 'User'
     const identifier = 'abc123'
-    
+
     const exception = new ResourceNotFoundException(resourceType, identifier)
 
     assert.equal(
-      exception.message, 
+      exception.message,
       `La ressource ${resourceType} avec l'identifiant ${identifier} n'a pas été trouvée`
     )
     assert.equal(exception.code, 'E_RESOURCE_NOT_FOUND')
@@ -22,11 +22,11 @@ test.group('ResourceNotFoundException', () => {
   test('should create an instance with numeric identifier', ({ assert }) => {
     const resourceType = 'Document'
     const identifier = 42
-    
+
     const exception = new ResourceNotFoundException(resourceType, identifier)
 
     assert.equal(
-      exception.message, 
+      exception.message,
       `La ressource ${resourceType} avec l'identifiant ${identifier} n'a pas été trouvée`
     )
     assert.equal(exception.code, 'E_RESOURCE_NOT_FOUND')
@@ -37,24 +37,24 @@ test.group('ResourceNotFoundException', () => {
   test('should create an instance with additional context', ({ assert }) => {
     const resourceType = 'File'
     const identifier = 'file-123'
-    const additionalContext = { 
+    const additionalContext = {
       path: '/documents/reports',
-      attempted: 'read'
+      attempted: 'read',
     }
-    
+
     const exception = new ResourceNotFoundException(resourceType, identifier, additionalContext)
 
     assert.equal(
-      exception.message, 
+      exception.message,
       `La ressource ${resourceType} avec l'identifiant ${identifier} n'a pas été trouvée`
     )
     assert.equal(exception.code, 'E_RESOURCE_NOT_FOUND')
     assert.equal(exception.status, 404)
-    assert.deepEqual(exception.context, { 
-      resourceType, 
+    assert.deepEqual(exception.context, {
+      resourceType,
       identifier,
       path: additionalContext.path,
-      attempted: additionalContext.attempted
+      attempted: additionalContext.attempted,
     })
   })
 
@@ -62,13 +62,13 @@ test.group('ResourceNotFoundException', () => {
     const resourceType = 'Circle'
     const identifier = 'circle-456'
     const exception = new ResourceNotFoundException(resourceType, identifier)
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sinon.stub().returnsThis(),
       json: sinon.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext

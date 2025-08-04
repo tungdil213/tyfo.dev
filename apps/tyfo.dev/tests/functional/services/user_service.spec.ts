@@ -137,7 +137,10 @@ test.group('UserService', (group) => {
     const testUsers = await service.listUsers({ fullName: 'Test User' })
 
     // Vérifier qu'on a au moins 3 utilisateurs avec ce nom
-    assert.isTrue(testUsers.length >= 3, `Nombre d'utilisateurs 'Test User' insuffisant: ${testUsers.length}`)
+    assert.isTrue(
+      testUsers.length >= 3,
+      `Nombre d'utilisateurs 'Test User' insuffisant: ${testUsers.length}`
+    )
     testUsers.forEach((user) => {
       assert.equal(user.fullName, 'Test User')
     })
@@ -156,14 +159,14 @@ test.group('UserService', (group) => {
       description: 'Test circle description',
       userId: user.id,
     })
-    
+
     // Assigner deux rôles
     await service.assignRole(user.uuid, role1.uuid, circle.uuid)
     await service.assignRole(user.uuid, role2.uuid, circle.uuid)
 
     // Lister les rôles
     const roles = await service.listRolesByUser(user.uuid)
-    
+
     assert.equal(roles.length, 2)
     const roleIds = roles.map((r) => r.id)
     assert.include(roleIds, role1.id)

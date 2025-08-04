@@ -25,13 +25,13 @@ test.group('ValidationException', (group) => {
 
   test('should create an instance with context', ({ assert }) => {
     const message = 'Form validation failed'
-    const context = { 
+    const context = {
       fields: {
         email: 'Email invalide',
-        password: 'Mot de passe trop court'
-      }
+        password: 'Mot de passe trop court',
+      },
     }
-    
+
     const exception = new ValidationException(message, context)
 
     assert.equal(exception.message, message)
@@ -44,13 +44,13 @@ test.group('ValidationException', (group) => {
     const message = 'Invalid input data'
     const context = { field: 'email', error: 'format invalide' }
     const exception = new ValidationException(message, context)
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sandbox.stub().returnsThis(),
       json: sandbox.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext

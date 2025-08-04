@@ -51,12 +51,12 @@ class MockFolderRepository implements FolderRepositoryContract {
   }
 
   async findByUuid(uuid: string): Promise<MockFolder | null> {
-    const folder = this.folders.find(f => f.uuid === uuid)
+    const folder = this.folders.find((f) => f.uuid === uuid)
     return folder || null
   }
 
   async findByName(name: string): Promise<MockFolder | null> {
-    const folder = this.folders.find(f => f.name === name)
+    const folder = this.folders.find((f) => f.name === name)
     return folder || null
   }
 
@@ -65,39 +65,39 @@ class MockFolderRepository implements FolderRepositoryContract {
   }
 
   async listByCircle(circleId: number): Promise<MockFolder[]> {
-    return this.folders.filter(f => f.circleId === circleId)
+    return this.folders.filter((f) => f.circleId === circleId)
   }
 
   async findByParent(parentId: number): Promise<MockFolder[]> {
-    return this.folders.filter(f => f.parentId === parentId)
+    return this.folders.filter((f) => f.parentId === parentId)
   }
 
   async findByCircle(circleId: number): Promise<MockFolder[]> {
-    return this.folders.filter(f => f.circleId === circleId)
+    return this.folders.filter((f) => f.circleId === circleId)
   }
 
   async getPath(folderId: number): Promise<MockFolder[]> {
     // Simplified implementation for testing
-    const folder = this.folders.find(f => f.id === folderId)
+    const folder = this.folders.find((f) => f.id === folderId)
     if (!folder) return []
-    
+
     const path: MockFolder[] = [folder]
     let currentFolder = folder
-    
+
     // Go up the folder hierarchy until we reach a folder with no parent
     while (currentFolder.parentId) {
-      const parentFolder = this.folders.find(f => f.id === currentFolder.parentId)
+      const parentFolder = this.folders.find((f) => f.id === currentFolder.parentId)
       if (!parentFolder) break
       path.unshift(parentFolder) // Add parent to the beginning of the path
       currentFolder = parentFolder
     }
-    
+
     return path
   }
 
   // Additional methods from FolderRepository
   async listByCircleUuid(circleUuid: string): Promise<MockFolder[]> {
-    return this.folders.filter(f => f.circleId.toString() === circleUuid)
+    return this.folders.filter((f) => f.circleId.toString() === circleUuid)
   }
 
   async listByRole(roleUuid: string): Promise<MockFolder[]> {
@@ -106,17 +106,17 @@ class MockFolderRepository implements FolderRepositoryContract {
   }
 
   async listByUser(userId: number): Promise<MockFolder[]> {
-    return this.folders.filter(f => f.userId === userId)
+    return this.folders.filter((f) => f.userId === userId)
   }
 
   async listByCircleAndRole(circleUuid: string, roleUuid: string): Promise<MockFolder[]> {
     // In our mock, we don't implement role filtering
-    return this.folders.filter(f => f.circleId.toString() === circleUuid)
+    return this.folders.filter((f) => f.circleId.toString() === circleUuid)
   }
 
   async listByRoleAndUser(roleUuid: string, userId: number): Promise<MockFolder[]> {
     // In our mock, we don't implement role filtering
-    return this.folders.filter(f => f.userId === userId)
+    return this.folders.filter((f) => f.userId === userId)
   }
 
   async listByCircleAndRoleAndUser(
@@ -124,9 +124,7 @@ class MockFolderRepository implements FolderRepositoryContract {
     roleUuid: string,
     userId: number
   ): Promise<MockFolder[]> {
-    return this.folders.filter(
-      f => f.circleId.toString() === circleUuid && f.userId === userId
-    )
+    return this.folders.filter((f) => f.circleId.toString() === circleUuid && f.userId === userId)
   }
 
   async listByCircleAndRoleAndUserAndObject(
@@ -136,9 +134,7 @@ class MockFolderRepository implements FolderRepositoryContract {
     objectUuid: string
   ): Promise<MockFolder[]> {
     // In our mock, we don't implement object filtering
-    return this.folders.filter(
-      f => f.circleId.toString() === circleUuid && f.userId === userId
-    )
+    return this.folders.filter((f) => f.circleId.toString() === circleUuid && f.userId === userId)
   }
 
   async listByCircleAndRoleAndUserAndObjectAndFolder(
@@ -149,15 +145,11 @@ class MockFolderRepository implements FolderRepositoryContract {
     folderUuid: string
   ): Promise<MockFolder[]> {
     // In our mock, we don't implement object and folder filtering
-    return this.folders.filter(
-      f => f.circleId.toString() === circleUuid && f.userId === userId
-    )
+    return this.folders.filter((f) => f.circleId.toString() === circleUuid && f.userId === userId)
   }
 
   async listByCircleAndUser(circleUuid: string, userId: number): Promise<MockFolder[]> {
-    return this.folders.filter(
-      f => f.circleId.toString() === circleUuid && f.userId === userId
-    )
+    return this.folders.filter((f) => f.circleId.toString() === circleUuid && f.userId === userId)
   }
 }
 
@@ -266,8 +258,8 @@ test.group('FolderRepository Mocked Tests', (group) => {
 
     // Verify we get all folders
     assert.lengthOf(folders, 2)
-    assert.isTrue(folders.some(f => f.name === folderData1.name))
-    assert.isTrue(folders.some(f => f.name === folderData2.name))
+    assert.isTrue(folders.some((f) => f.name === folderData1.name))
+    assert.isTrue(folders.some((f) => f.name === folderData2.name))
   })
 
   test('listByCircle should retrieve folders for a specific circle', async ({ assert }) => {
@@ -323,7 +315,9 @@ test.group('FolderRepository Mocked Tests', (group) => {
     assert.equal(circle2Folders[0].circleId, circle2Id)
   })
 
-  test('listByCircleAndUser should retrieve folders for a specific circle and user', async ({ assert }) => {
+  test('listByCircleAndUser should retrieve folders for a specific circle and user', async ({
+    assert,
+  }) => {
     const circle3Id = 3
     const user4Id = 4
     const user5Id = 5
@@ -442,7 +436,7 @@ test.group('FolderRepository Mocked Tests', (group) => {
 
     // Verify we get both child folders
     assert.lengthOf(childFolders, 2)
-    childFolders.forEach(folder => {
+    childFolders.forEach((folder) => {
       assert.equal(folder.parentId, parentFolder.id)
     })
   })

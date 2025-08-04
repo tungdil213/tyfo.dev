@@ -23,6 +23,9 @@ export default class ObjectModel extends BaseModel {
   @column()
   declare name: string
 
+  @column()
+  declare description: string
+
   @column({ columnName: 'mime_type' })
   declare mimeType: string
 
@@ -34,6 +37,13 @@ export default class ObjectModel extends BaseModel {
 
   @column()
   declare location: string
+
+  @column({
+    columnName: 'metadata',
+    prepare: (value) => JSON.stringify(value),
+    consume: (value) => (value ? JSON.parse(value) : {}),
+  })
+  declare metadata: Record<string, any>
 
   @column.dateTime({ columnName: 'created_at', autoCreate: true })
   declare createdAt: DateTime

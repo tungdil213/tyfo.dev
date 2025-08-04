@@ -147,12 +147,7 @@ class TestAttributionRepository implements Partial<AttributionRepositoryContract
 
   // Méthode auxiliaire pour les tests
   addAttribution(userId: number, roleId: number, circleId: number | null) {
-    const attribution = new MockAttribution(
-      this.attributions.length + 1,
-      userId,
-      roleId,
-      circleId
-    )
+    const attribution = new MockAttribution(this.attributions.length + 1, userId, roleId, circleId)
     this.attributions.push(attribution)
     return attribution
   }
@@ -203,7 +198,7 @@ test.group('RoleService', (group) => {
     circleStub = sandbox.stub(Circle, 'findBy')
     permissionStub = sandbox.stub(Permission, 'findBy')
     attributionCreateStub = sandbox.stub(Attribution, 'create')
-    
+
     // Simuler la méthode statique query() de Attribution
     const queryStub = sandbox.stub(Attribution, 'query')
     attributionStub = {
@@ -233,13 +228,13 @@ test.group('RoleService', (group) => {
     const roleId = 'role-uuid'
     const user = new MockUser(1, userId, 'user@example.com')
     const role = new MockRole(1, roleId, 'Admin')
-    
+
     userStub.withArgs('uuid', userId).resolves(user)
     roleStub.withArgs('uuid', roleId).resolves(role)
     attributionStub.first.resolves({ id: 1, userId: 1, roleId: 1, circleId: null })
 
     await service.assignRole(userId, roleId)
-    
+
     assert.isTrue(userStub.calledWith('uuid', userId))
     assert.isTrue(roleStub.calledWith('uuid', roleId))
     assert.isTrue(attributionCreateStub.calledOnce)
@@ -253,7 +248,7 @@ test.group('RoleService', (group) => {
   test('assignRole should throw NotFoundException if user not found', async ({ assert }) => {
     // Setup
     userStub.withArgs('uuid', 'non-existent').resolves(null)
-    
+
     // Assertion
     try {
       await service.assignRole('non-existent', 'role-uuid')
@@ -304,12 +299,12 @@ test.group('RoleService', (group) => {
     const roleId = 'role-uuid'
     const user = new MockUser(1, userId, 'user@example.com')
     const role = new MockRole(1, roleId, 'Admin')
-    
+
     userStub.withArgs('uuid', userId).resolves(user)
     roleStub.withArgs('uuid', roleId).resolves(role)
 
     await service.removeRole(userId, roleId)
-    
+
     assert.isTrue(userStub.calledWith('uuid', userId))
     assert.isTrue(roleStub.calledWith('uuid', roleId))
   })
@@ -319,15 +314,15 @@ test.group('RoleService', (group) => {
     const permissionAction = 'READ_FILES'
     const role = new MockRole(1, roleUuid, 'Admin')
     const permission = new MockPermission(1, permissionAction)
-    
+
     roleStub.withArgs('uuid', roleUuid).resolves(role)
     permissionStub.withArgs('action', permissionAction).resolves(permission)
 
     // Espionner la méthode related
     const relatedSpy = sandbox.spy(role, 'related')
-    
+
     await service.assignPermission(roleUuid, permissionAction)
-    
+
     assert.isTrue(roleStub.calledWith('uuid', roleUuid))
     assert.isTrue(permissionStub.calledWith('action', permissionAction))
     assert.isTrue(relatedSpy.calledWith('permissions'))
@@ -337,19 +332,19 @@ test.group('RoleService', (group) => {
     const roleUuid = 'role-uuid'
     const permissionAction = 'NEW_PERMISSION'
     const role = new MockRole(1, roleUuid, 'Admin')
-    
+
     roleStub.withArgs('uuid', roleUuid).resolves(role)
     permissionStub.withArgs('action', permissionAction).resolves(null)
-    
-    const permissionCreateStub = sandbox.stub(Permission, 'create').resolves(
-      new MockPermission(1, permissionAction)
-    )
+
+    const permissionCreateStub = sandbox
+      .stub(Permission, 'create')
+      .resolves(new MockPermission(1, permissionAction))
 
     // Espionner la méthode related
     const relatedSpy = sandbox.spy(role, 'related')
-    
+
     await service.assignPermission(roleUuid, permissionAction)
-    
+
     assert.isTrue(roleStub.calledWith('uuid', roleUuid))
     assert.isTrue(permissionStub.calledWith('action', permissionAction))
     assert.isTrue(permissionCreateStub.calledOnce)
@@ -361,15 +356,15 @@ test.group('RoleService', (group) => {
     const permissionAction = 'READ_FILES'
     const role = new MockRole(1, roleUuid, 'Admin')
     const permission = new MockPermission(1, permissionAction)
-    
+
     roleStub.withArgs('uuid', roleUuid).resolves(role)
     permissionStub.withArgs('action', permissionAction).resolves(permission)
 
     // Espionner la méthode related
     const relatedSpy = sandbox.spy(role, 'related')
-    
+
     await service.removePermission(roleUuid, permissionAction)
-    
+
     assert.isTrue(roleStub.calledWith('uuid', roleUuid))
     assert.isTrue(permissionStub.calledWith('action', permissionAction))
     assert.isTrue(relatedSpy.calledWith('permissions'))
@@ -380,45 +375,46 @@ test.group('RoleService', (group) => {
     const permissionAction = 'READ_FILES'
     const user = new MockUser(1, userUuid, 'user@example.com')
     const permission = new MockPermission(1, permissionAction)
-    
+
     userStub.withArgs('uuid', userUuid).resolves(user)
     permissionStub.withArgs('action', permissionAction).resolves(permission)
-    
+
     // Configurer attribution et permissions
     attributionRepository.addAttribution(1, 1, null) // Attribution globale
     roleRepository.setRolePermissions(1, [1]) // Role 1 a permission 1
-    
+
     const result = await service.checkUserPermission(userUuid, permissionAction)
-    
+
     assert.isTrue(result)
   })
 
-  test('checkUserPermission should return false if user does not have permission', async ({ assert }) => {
+  test('checkUserPermission should return false if user does not have permission', async ({
+    assert,
+  }) => {
     const userUuid = 'user-uuid'
     const permissionAction = 'ADMIN_ACTION'
     const user = new MockUser(1, userUuid, 'user@example.com')
     const permission = new MockPermission(2, permissionAction)
-    
+
     userStub.withArgs('uuid', userUuid).resolves(user)
     permissionStub.withArgs('action', permissionAction).resolves(permission)
-    
+
     // Configurer attribution sans la permission requise
     attributionRepository.addAttribution(1, 1, null)
     roleRepository.setRolePermissions(1, [1]) // Role 1 a permission 1, mais pas 2
-    
+
     const result = await service.checkUserPermission(userUuid, permissionAction)
-    
+
     assert.isFalse(result)
   })
 
   test('listRoles should return all roles', async ({ assert }) => {
-    const rolesQueryStub = sandbox.stub(Role, 'all').resolves([
-      new MockRole(1, 'role1-uuid', 'Admin'),
-      new MockRole(2, 'role2-uuid', 'Editor'),
-    ])
-    
+    const rolesQueryStub = sandbox
+      .stub(Role, 'all')
+      .resolves([new MockRole(1, 'role1-uuid', 'Admin'), new MockRole(2, 'role2-uuid', 'Editor')])
+
     const roles = await service.listRoles()
-    
+
     assert.isTrue(rolesQueryStub.calledOnce)
     assert.equal(roles.length, 2)
     assert.equal(roles[0].id, 'role1-uuid')
@@ -430,15 +426,12 @@ test.group('RoleService', (group) => {
   test('getRolePermissions should return permissions for role', async ({ assert }) => {
     const roleUuid = 'role-uuid'
     const role = new MockRole(1, roleUuid, 'Admin')
-    role.permissions = [
-      new MockPermission(1, 'READ'),
-      new MockPermission(2, 'WRITE'),
-    ]
-    
+    role.permissions = [new MockPermission(1, 'READ'), new MockPermission(2, 'WRITE')]
+
     roleStub.withArgs('uuid', roleUuid).resolves(role)
-    
+
     const permissions = await service.getRolePermissions(roleUuid)
-    
+
     assert.isTrue(roleStub.calledWith('uuid', roleUuid))
     assert.equal(permissions.length, 2)
     assert.equal(permissions[0], 'READ')
@@ -448,15 +441,18 @@ test.group('RoleService', (group) => {
   test('listRolesByCircleUuid should return roles for circle', async ({ assert }) => {
     const circleUuid = 'circle-uuid'
     const circle = new MockCircle(1, circleUuid, 'Team A')
-    
+
     circleStub.withArgs('uuid', circleUuid).resolves(circle)
-    
+
     // Configurer attributions dans le cercle
     attributionRepository.addAttribution(1, 1, 1) // user 1, role 1, circle 1
     attributionRepository.addAttribution(2, 2, 1) // user 2, role 2, circle 1
-    
+
     // Mock Role.query().whereIn() pour retourner les rôles
-    const mockRoles = [new MockRole(1, 'role1-uuid', 'Role 1'), new MockRole(2, 'role2-uuid', 'Role 2')]
+    const mockRoles = [
+      new MockRole(1, 'role1-uuid', 'Role 1'),
+      new MockRole(2, 'role2-uuid', 'Role 2'),
+    ]
     const mockQueryBuilder = {
       whereIn: sandbox.stub().returnsThis(),
     }
@@ -464,9 +460,9 @@ test.group('RoleService', (group) => {
     const roleQueryStub = sandbox.stub(Role, 'query').returns(mockQueryBuilder as any)
     // Simuler le comportement de whereIn en retournant les rôles mockés
     mockQueryBuilder.whereIn.withArgs('id', [1, 2]).resolves(mockRoles)
-    
+
     const roles = await service.listRolesByCircleUuid(circleUuid)
-    
+
     assert.isTrue(circleStub.calledWith('uuid', circleUuid))
     assert.equal(roles.length, 2)
     assert.equal(roles[0].id, 1)
@@ -477,16 +473,19 @@ test.group('RoleService', (group) => {
     const circleUuid = 'circle-uuid'
     const userId = 1
     const circle = new MockCircle(1, circleUuid, 'Team A')
-    
+
     circleStub.withArgs('uuid', circleUuid).resolves(circle)
-    
+
     // Configurer attributions
     attributionRepository.addAttribution(userId, 1, 1) // user 1, role 1, circle 1
     attributionRepository.addAttribution(userId, 2, 1) // user 1, role 2, circle 1
     attributionRepository.addAttribution(2, 3, 1) // user 2, role 3, circle 1 (ne devrait pas être inclus)
-    
+
     // Mock Role.query().whereIn() pour retourner les rôles
-    const mockRoles = [new MockRole(1, 'role1-uuid', 'Role 1'), new MockRole(2, 'role2-uuid', 'Role 2')]
+    const mockRoles = [
+      new MockRole(1, 'role1-uuid', 'Role 1'),
+      new MockRole(2, 'role2-uuid', 'Role 2'),
+    ]
     const mockQueryBuilder = {
       whereIn: sandbox.stub().returnsThis(),
     }
@@ -494,9 +493,9 @@ test.group('RoleService', (group) => {
     const roleQueryStub = sandbox.stub(Role, 'query').returns(mockQueryBuilder as any)
     // Simuler le comportement de whereIn en retournant les rôles mockés
     mockQueryBuilder.whereIn.withArgs('id', [1, 2]).resolves(mockRoles)
-    
+
     const roles = await service.listRolesByCircleAndUser(circleUuid, userId)
-    
+
     assert.isTrue(circleStub.calledWith('uuid', circleUuid))
     assert.equal(roles.length, 2)
     assert.equal(roles[0].id, 1)

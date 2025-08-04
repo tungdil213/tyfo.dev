@@ -1,0 +1,438 @@
+import { test } from '@japa/runner'
+import sinon from 'sinon'
+import { DateTime } from 'luxon'
+import crypto from 'node:crypto'
+
+import LogService from '#services/log_service'
+import AuditService, { DocumentData, AuditLogData } from '#services/audit_service'
+import { generateUuid } from '#utils/uuid_helper'
+
+/**
+ * Tests avancés pour les fonctionnalités d'audit et traçabilité
+ * Ces tests couvrent les aspects critiques de la traçabilité dans un système de gestion documentaire:
+ * - Chaîne inviolable de logs d'audit
+ * - Vérification d'intégrité des documents
+ * - Journal chronologique complet
+ * - Détection d'accès suspects
+ * - Audit des modifications de permissions
+ */
+test.group('Audit & Traceability Service', (group) => {
+  const sandbox = sinon.createSandbox()
+  let auditService: AuditService
+  let logService: any // Utilisation de type 'any' pour contourner les erreurs de typage avec les mocks
+
+  // Classe mockée pour les documents
+  class MockDocument implements DocumentData {
+    constructor(
+      public uuid: string,
+      public name: string,
+      public path: string,
+      public contentHash: string = '',
+      public metadata: Record<string, any> = {}
+    ) {}
+  }
+
+  // Classe mockée pour les logs d'audit
+  class MockLog implements AuditLogData {
+    public uuid: string
+    public timestamp: DateTime
+    public previousLogHash: string | null = null
+    public hashSignature: string | null = null
+
+    constructor(
+      public userId: string,
+      public action: string,
+      public entityType?: string,
+      public entityId?: string,
+      public metadata: Record<string, any> = {}
+    ) {
+      this.uuid = generateUuid()
+      this.timestamp = DateTime.now()
+    }
+
+    // Génère un hash pour ce log basé sur son contenu et le hash précédent
+    calculateHash(): string {
+      const data = JSON.stringify({
+        uuid: this.uuid,
+        userId: this.userId,
+        action: this.action,
+        entityType: this.entityType,
+        entityId: this.entityId,
+        timestamp: this.timestamp.toISO(),
+        metadata: this.metadata,
+        previousLogHash: this.previousLogHash,
+      })
+      return crypto.createHash('sha256').update(data).digest('hex')
+    }
+  }
+
+  // Interface pour le repository de logs
+  interface TestLogRepositoryContract {
+    create: (data: any) => Promise<MockLog>
+    findByEntityId: (entityId: string) => Promise<MockLog[]>
+    findByUserId: (userId: string) => Promise<MockLog[]>
+    findByDateRange: (startDate: DateTime, endDate: DateTime) => Promise<MockLog[]>
+    findAll: () => Promise<MockLog[]>
+  }
+
+  // Mock du repository de logs
+  class TestLogRepository implements TestLogRepositoryContract {
+    private logs: MockLog[] = []
+
+    async create(data: any): Promise<MockLog> {
+      const log = new MockLog(
+        data.userId,
+        data.action,
+        data.entityType,
+        data.entityId,
+        data.metadata
+      )
+
+      // Récupérer le dernier log pour chaînage
+      const lastLog = this.logs.length > 0 ? this.logs[this.logs.length - 1] : null
+      if (lastLog) {
+        log.previousLogHash = lastLog.hashSignature
+      }
+
+      // Calculer la signature du hash
+      log.hashSignature = log.calculateHash()
+
+      this.logs.push(log)
+      return log
+    }
+
+    async findByEntityId(entityId: string): Promise<MockLog[]> {
+      return this.logs.filter((log) => log.entityId === entityId)
+    }
+
+    async findByUserId(userId: string): Promise<MockLog[]> {
+      return this.logs.filter((log) => log.userId === userId)
+    }
+
+    async findByDateRange(startDate: DateTime, endDate: DateTime): Promise<MockLog[]> {
+      return this.logs.filter((log) => log.timestamp >= startDate && log.timestamp <= endDate)
+    }
+
+    async findAll(): Promise<MockLog[]> {
+      return [...this.logs]
+    }
+  }
+
+  // Provider de documents pour les tests
+  class TestDocumentProvider {
+    private documents: Map<string, MockDocument> = new Map()
+
+    addDocument(document: MockDocument): void {
+      this.documents.set(document.uuid, document)
+    }
+
+    getDocument(uuid: string): MockDocument | null {
+      return this.documents.get(uuid) || null
+    }
+
+    updateDocumentHash(uuid: string, newHash: string): void {
+      const doc = this.documents.get(uuid)
+      if (doc) {
+        doc.contentHash = newHash
+      }
+    }
+  }
+
+  // Configuration avant chaque test
+  group.each.setup(() => {
+    // Reset le sandbox
+    sandbox.restore()
+
+    // Créer le repository de logs
+    const logRepository = new TestLogRepository()
+
+    // Créer le service de log mocké
+    logService = {
+      repository: logRepository,
+
+      // Méthodes mockées utilisées par AuditService
+      async logAction(
+        userId: string,
+        action: string,
+        entityType?: string,
+        entityId?: string,
+        metadata: Record<string, any> = {}
+      ) {
+        return await logRepository.create({
+          userId,
+          action,
+          entityType,
+          entityId,
+          metadata,
+        })
+      },
+
+      // Mock pour journaliser l'accès aux documents
+      async logDocumentAccess(
+        userId: string,
+        documentId: string,
+        action: string,
+        metadata: Record<string, any> = {}
+      ) {
+        return await logRepository.create({
+          userId,
+          action,
+          entityType: 'document',
+          entityId: documentId,
+          metadata,
+        })
+      },
+
+      // Mock pour journaliser les changements de permissions
+      async logPermissionChange(
+        adminId: string,
+        entityType: string,
+        targetId: string,
+        changes: Record<string, any>
+      ) {
+        return await logRepository.create({
+          userId: adminId,
+          action: 'change_permission',
+          entityType,
+          entityId: targetId,
+          metadata: { changes },
+        })
+      },
+
+      async getLogChain() {
+        return await logRepository.findAll()
+      },
+    }
+
+    // Créer le provider de documents pour les tests
+    const documentProvider = new TestDocumentProvider()
+
+    // Fonction getDocument pour les tests
+    const getDocument = (documentId: string) => {
+      return documentProvider.getDocument(documentId)
+    }
+
+    // Initialiser le service d'audit
+    auditService = new AuditService(logService)
+
+    return { logService, documentProvider, getDocument }
+  })
+
+  // Nettoyer après les tests
+  group.teardown(() => {
+    sandbox.restore()
+  })
+
+  test("Vérifie l'intégrité de la chaîne de logs d'audit (non falsifiable)", async ({ assert }) => {
+    const { logService } = group.context()
+
+    // Créer une séquence de logs
+    await logService.logAction('user-123', 'login')
+    await logService.logAction('user-123', 'view', 'document', 'doc-456')
+    await logService.logAction('user-123', 'edit', 'document', 'doc-456')
+    await logService.logAction('user-123', 'logout')
+
+    // Vérifier l'intégrité de la chaîne de logs
+    const result = await auditService.verifyLogChainIntegrity()
+
+    assert.isTrue(result.valid, 'La chaîne de logs devrait être valide')
+    assert.isUndefined(result.invalidLogIndex, "Il ne devrait pas y avoir d'index invalide")
+  })
+
+  test("Détecte la falsification dans la chaîne de logs d'audit", async ({ assert }) => {
+    const { logService } = group.context()
+
+    // Créer une séquence de logs
+    await logService.logAction('user-123', 'login')
+    const log2 = await logService.logAction('user-123', 'view', 'document', 'doc-456')
+    await logService.logAction('user-123', 'edit', 'document', 'doc-456')
+
+    // Altérer un log directement (simuler une falsification)
+    // @ts-ignore - Accès à une propriété privée pour le test
+    const logs = await logService.repository.findAll()
+    const tamperedLog = logs[1] // Le deuxième log
+    tamperedLog.action = 'falsified_action' // Modifier l'action sans recalculer le hash
+
+    // Vérifier l'intégrité de la chaîne de logs
+    const result = await auditService.verifyLogChainIntegrity()
+
+    assert.isFalse(result.valid, 'La chaîne de logs devrait être invalide')
+    assert.equal(result.invalidLogIndex, 1, "L'index du log invalide devrait être 1")
+    assert.isString(result.reason, 'Une raison devrait être fournie')
+  })
+
+  test("Vérifie l'intégrité d'un document en comparant avec son hash enregistré", async ({
+    assert,
+  }) => {
+    const { logService, documentProvider, getDocument } = group.context()
+
+    // Créer un document avec un hash
+    const documentId = 'doc-123'
+    const content = 'Contenu original du document'
+    const contentHash = crypto.createHash('sha256').update(content).digest('hex')
+
+    // Ajouter le document au provider
+    const document = new MockDocument(documentId, 'Test Document', '/test/path', contentHash)
+    documentProvider.addDocument(document)
+
+    // Journaliser une action sur ce document
+    await logService.logDocumentAccess('user-123', documentId, 'create', { contentHash })
+
+    // Vérifier l'intégrité avec le contenu original
+    const result = await auditService.detectDocumentIntegrityViolation(
+      documentId,
+      content,
+      getDocument
+    )
+
+    assert.isFalse(result, "Aucune violation d'intégrité ne devrait être détectée")
+  })
+
+  test("Détecte une violation d'intégrité quand le contenu du document est modifié", async ({
+    assert,
+  }) => {
+    const { logService, documentProvider, getDocument } = group.context()
+
+    // Créer un document avec un hash
+    const documentId = 'doc-456'
+    const originalContent = 'Contenu original du document'
+    const contentHash = crypto.createHash('sha256').update(originalContent).digest('hex')
+
+    // Ajouter le document au provider
+    const document = new MockDocument(documentId, 'Test Document', '/test/path', contentHash)
+    documentProvider.addDocument(document)
+
+    // Journaliser une action sur ce document
+    await logService.logDocumentAccess('user-123', documentId, 'create', { contentHash })
+
+    // Vérifier l'intégrité avec un contenu modifié
+    const modifiedContent = 'Contenu modifié du document'
+    const result = await auditService.detectDocumentIntegrityViolation(
+      documentId,
+      modifiedContent,
+      getDocument
+    )
+
+    assert.isTrue(result, "Une violation d'intégrité devrait être détectée")
+  })
+
+  test("Maintient la chaîne de possession d'un document à travers son cycle de vie", async ({
+    assert,
+  }) => {
+    const { logService, documentProvider, getDocument } = group.context()
+
+    // Créer un document
+    const documentId = 'doc-789'
+    const document = new MockDocument(documentId, 'Document Test', '/test/path')
+    documentProvider.addDocument(document)
+
+    // Simuler la chaîne de possession
+    await logService.logDocumentAccess('user-alice', documentId, 'create')
+    await logService.logDocumentAccess('user-alice', documentId, 'update')
+    await logService.logDocumentAccess('user-bob', documentId, 'view')
+    await logService.logDocumentAccess('user-charlie', documentId, 'view')
+    await logService.logDocumentAccess('user-alice', documentId, 'update')
+
+    // Récupérer la chaîne de possession
+    const chain = await auditService.getDocumentChainOfCustody(documentId)
+
+    // Vérifier la chaîne
+    assert.equal(chain.length, 5, 'Il devrait y avoir 5 événements dans la chaîne de possession')
+    assert.equal(chain[0].userId, 'user-alice', 'Le créateur devrait être Alice')
+    assert.equal(chain[0].action, 'create', 'La première action devrait être create')
+    assert.equal(chain[4].userId, 'user-alice', 'La dernière action devrait être par Alice')
+  })
+
+  test("Détecte les accès suspects à des documents basés sur les patterns d'utilisation", async ({
+    assert,
+  }) => {
+    const { logService, documentProvider } = group.context()
+
+    // Créer quelques documents
+    const document1 = new MockDocument('doc-111', 'Document Confidentiel', '/confidential/')
+    const document2 = new MockDocument('doc-222', 'Document Public', '/public/')
+
+    documentProvider.addDocument(document1)
+    documentProvider.addDocument(document2)
+
+    // Simuler un comportement normal
+    const normalTime = DateTime.now().minus({ hours: 2 })
+    await logService.logDocumentAccess('user-normal', 'doc-222', 'view', {
+      timestamp: normalTime.toISO(),
+    })
+    await logService.logDocumentAccess('user-normal', 'doc-222', 'edit', {
+      timestamp: normalTime.plus({ minutes: 5 }).toISO(),
+    })
+
+    // Simuler un comportement suspect (nombreux accès en peu de temps)
+    for (let i = 0; i < 20; i++) {
+      await logService.logDocumentAccess(
+        'user-suspect',
+        i % 3 === 0 ? 'doc-111' : 'doc-222',
+        'view',
+        {
+          timestamp: DateTime.now()
+            .minus({ minutes: 30 - i })
+            .toISO(),
+        }
+      )
+    }
+
+    // Détecter les comportements suspects
+    const suspiciousAccess = await auditService.detectSuspiciousAccess(
+      DateTime.now().minus({ hours: 3 }),
+      DateTime.now()
+    )
+
+    assert.isTrue(
+      suspiciousAccess.some((access) => access.userId === 'user-suspect'),
+      "L'utilisateur suspect devrait être détecté"
+    )
+
+    assert.isFalse(
+      suspiciousAccess.some((access) => access.userId === 'user-normal'),
+      "L'utilisateur normal ne devrait pas être détecté"
+    )
+  })
+
+  test("Suit les changements de permissions pour assurer l'audit de sécurité", async ({
+    assert,
+  }) => {
+    const { logService } = group.context()
+
+    // Simuler des changements de permissions
+    await logService.logPermissionChange('admin-user', 'user', 'user-123', {
+      roles: ['viewer', 'editor'],
+    })
+
+    await logService.logPermissionChange('admin-user', 'user', 'user-123', {
+      roles: ['viewer', 'editor', 'admin'],
+    })
+
+    await logService.logPermissionChange('super-admin', 'user', 'user-123', {
+      roles: ['viewer'], // Rétrograder
+    })
+
+    // Récupérer l'historique des permissions
+    const permissionHistory = await auditService.getPermissionChangeHistory('user', 'user-123')
+
+    // Vérifier l'historique
+    assert.equal(permissionHistory.length, 3, 'Il devrait y avoir 3 changements de permission')
+    assert.equal(
+      permissionHistory[0].userId,
+      'admin-user',
+      'Le premier changement devrait être par admin-user'
+    )
+    assert.deepEqual(
+      permissionHistory[0].metadata.changes,
+      { roles: ['viewer', 'editor'] },
+      'Le premier changement devrait ajouter les rôles viewer et editor'
+    )
+
+    assert.deepEqual(
+      permissionHistory[2].metadata.changes,
+      { roles: ['viewer'] },
+      'Le dernier changement devrait rétrograder à viewer uniquement'
+    )
+  })
+})

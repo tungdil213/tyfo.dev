@@ -110,8 +110,15 @@ export default class UserRepository extends BaseRepository<User> implements User
     }
 
     // Convertir en ID numérique si c'est un UUID
-    let roleIdNumeric = typeof roleId === 'string' ? (await Role.findByOrFail('uuid', roleId)).id : roleId
-    
+    // Corriger l'erreur d'accès à un membre directement à partir d'une expression await
+    let roleIdNumeric: number
+    if (typeof roleId === 'string') {
+      const role = await Role.findByOrFail('uuid', roleId)
+      roleIdNumeric = role.id
+    } else {
+      roleIdNumeric = roleId
+    }
+
     // Préparer l'attribution
     const attributionData: any = {
       userId: user.id,
@@ -120,9 +127,10 @@ export default class UserRepository extends BaseRepository<User> implements User
 
     // Ajouter le cercle si spécifié
     if (circleId) {
-      const circle = typeof circleId === 'string'
-        ? await Circle.findByOrFail('uuid', circleId)
-        : await Circle.findOrFail(circleId)
+      const circle =
+        typeof circleId === 'string'
+          ? await Circle.findByOrFail('uuid', circleId)
+          : await Circle.findOrFail(circleId)
       attributionData.circleId = circle.id
     }
 
@@ -138,11 +146,12 @@ export default class UserRepository extends BaseRepository<User> implements User
     if (!user) {
       throw new Error(`Utilisateur avec UUID ${userUuid} non trouvé`)
     }
-    
+
     // Convertir en ID numérique si c'est un UUID
-    const role = typeof roleId === 'string'
-      ? await Role.findByOrFail('uuid', roleId)
-      : await Role.findOrFail(roleId)
+    const role =
+      typeof roleId === 'string'
+        ? await Role.findByOrFail('uuid', roleId)
+        : await Role.findOrFail(roleId)
     const roleIdNumeric = role.id
 
     // Supprimer l'attribution
@@ -159,9 +168,10 @@ export default class UserRepository extends BaseRepository<User> implements User
     }
 
     // Convertir en ID numérique si c'est un UUID
-    const circle = typeof circleId === 'string'
-      ? await Circle.findByOrFail('uuid', circleId)
-      : await Circle.findOrFail(circleId)
+    const circle =
+      typeof circleId === 'string'
+        ? await Circle.findByOrFail('uuid', circleId)
+        : await Circle.findOrFail(circleId)
     // Mettre à jour le cercle pour y ajouter l'utilisateur (relation One-to-Many)
     circle.userId = user.id
     await circle.save()

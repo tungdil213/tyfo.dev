@@ -16,4 +16,11 @@ export interface RoleServiceContract {
     roleUuid: string,
     userId: number
   ): Promise<Role[]>
+  addInheritanceRelation(params: {
+    sourceEntityType: string
+    sourceEntityId: string
+    targetEntityType: string
+    targetEntityId: string
+    createdBy: number
+  }): Promise<void>
 }

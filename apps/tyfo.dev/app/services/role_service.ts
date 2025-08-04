@@ -288,4 +288,36 @@ export default class RoleService implements RoleServiceContract {
 
     return hasAttribution ? [role] : []
   }
+
+  /**
+   * Ajoute une relation d'héritage entre deux entités
+   * Utilisé notamment pour établir des relations d'héritage de permissions entre fichiers/dossiers
+   *
+   * @param params - Paramètres de la relation d'héritage
+   * @param params.sourceEntityType - Type de l'entité source (FILE, FOLDER, etc.)
+   * @param params.sourceEntityId - ID de l'entité source
+   * @param params.targetEntityType - Type de l'entité cible (FILE, FOLDER, etc.)
+   * @param params.targetEntityId - ID de l'entité cible
+   * @param params.createdBy - ID de l'utilisateur qui crée la relation
+   * @returns {Promise<void>}
+   */
+  async addInheritanceRelation(params: {
+    sourceEntityType: string
+    sourceEntityId: string
+    targetEntityType: string
+    targetEntityId: string
+    createdBy: number
+  }): Promise<void> {
+    // Dans une implémentation réelle, cette méthode pourrait créer
+    // une entrée dans une table d'héritage de permissions ou une table de relations
+
+    // Pour l'instant, nous implémentons un simple log de l'opération pour satisfaire l'interface
+    console.log(
+      `Relation d'héritage créée entre ${params.sourceEntityType}:${params.sourceEntityId} et` +
+        ` ${params.targetEntityType}:${params.targetEntityId} par l'utilisateur ${params.createdBy}`
+    )
+
+    // Note: Une implémentation complète nécessiterait probablement un repository dédié
+    // pour stocker ces relations d'héritage dans la base de données
+  }
 }

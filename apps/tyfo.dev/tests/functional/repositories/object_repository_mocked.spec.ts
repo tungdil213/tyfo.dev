@@ -62,7 +62,7 @@ class MockObject implements Partial<ObjectModel> {
       hash: this.hash,
       location: this.location,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt
+      updatedAt: this.updatedAt,
     }
   }
 
@@ -95,30 +95,30 @@ class MockObjectRepository implements ObjectRepositoryContract {
   }
 
   async findByUuid(uuid: string): Promise<MockObject | null> {
-    const object = this.objects.find(obj => obj.uuid === uuid)
+    const object = this.objects.find((obj) => obj.uuid === uuid)
     return object || null
   }
 
   async findByHash(hash: string): Promise<MockObject | null> {
-    const object = this.objects.find(obj => obj.hash === hash)
+    const object = this.objects.find((obj) => obj.hash === hash)
     return object || null
   }
 
   async findByFolder(folderId: number): Promise<MockObject[]> {
-    return this.objects.filter(obj => obj.folderId === folderId)
+    return this.objects.filter((obj) => obj.folderId === folderId)
   }
 
   async findByFolderAndName(folderId: number, name: string): Promise<MockObject | null> {
     // Trier par révision descendante pour obtenir la dernière version
     const objects = this.objects
-      .filter(obj => obj.folderId === folderId && obj.name === name)
+      .filter((obj) => obj.folderId === folderId && obj.name === name)
       .sort((a, b) => b.revision - a.revision)
-    
+
     return objects.length > 0 ? objects[0] : null
   }
 
   async findByMimeType(mimeType: string): Promise<MockObject[]> {
-    return this.objects.filter(obj => obj.mimeType === mimeType)
+    return this.objects.filter((obj) => obj.mimeType === mimeType)
   }
 
   async list(): Promise<MockObject[]> {
@@ -128,13 +128,9 @@ class MockObjectRepository implements ObjectRepositoryContract {
     })
   }
 
-  async listByFolder(
-    folderId: number,
-    page?: number,
-    limit?: number
-  ): Promise<MockObject[]> {
+  async listByFolder(folderId: number, page?: number, limit?: number): Promise<MockObject[]> {
     let result = this.objects
-      .filter(obj => obj.folderId === folderId)
+      .filter((obj) => obj.folderId === folderId)
       .sort((a, b) => {
         // D'abord trier par nom
         const nameComparison = a.name.localeCompare(b.name)
@@ -152,13 +148,9 @@ class MockObjectRepository implements ObjectRepositoryContract {
     return result
   }
 
-  async listByUser(
-    userId: number,
-    page: number = 1,
-    limit: number = 20
-  ): Promise<MockObject[]> {
+  async listByUser(userId: number, page: number = 1, limit: number = 20): Promise<MockObject[]> {
     let result = this.objects
-      .filter(obj => obj.userId === userId)
+      .filter((obj) => obj.userId === userId)
       .sort((a, b) => b.updatedAt.toUnixInteger() - a.updatedAt.toUnixInteger())
 
     // Appliquer la pagination
@@ -167,7 +159,7 @@ class MockObjectRepository implements ObjectRepositoryContract {
   }
 
   async update(uuid: string, data: Partial<ObjectModel>): Promise<MockObject> {
-    const objectIndex = this.objects.findIndex(obj => obj.uuid === uuid)
+    const objectIndex = this.objects.findIndex((obj) => obj.uuid === uuid)
     if (objectIndex === -1) {
       throw new Error('Objet non trouvé')
     }
@@ -177,7 +169,7 @@ class MockObjectRepository implements ObjectRepositoryContract {
   }
 
   async remove(uuid: string): Promise<void> {
-    const objectIndex = this.objects.findIndex(obj => obj.uuid === uuid)
+    const objectIndex = this.objects.findIndex((obj) => obj.uuid === uuid)
     if (objectIndex !== -1) {
       this.objects.splice(objectIndex, 1)
     }
@@ -185,7 +177,7 @@ class MockObjectRepository implements ObjectRepositoryContract {
 
   async getRevision(folderId: number, name: string): Promise<number> {
     const objects = this.objects
-      .filter(obj => obj.folderId === folderId && obj.name === name)
+      .filter((obj) => obj.folderId === folderId && obj.name === name)
       .sort((a, b) => b.revision - a.revision)
 
     return objects.length > 0 ? objects[0].revision + 1 : 1
@@ -197,22 +189,22 @@ class MockObjectRepository implements ObjectRepositoryContract {
 
     // Récupérer toutes les versions du même fichier (même nom et dossier)
     return this.objects
-      .filter(obj => obj.folderId === object.folderId && obj.name === object.name)
+      .filter((obj) => obj.folderId === object.folderId && obj.name === object.name)
       .sort((a, b) => b.revision - a.revision)
   }
 
   async getRevisions(objectId: number): Promise<MockObject[]> {
-    const object = this.objects.find(obj => obj.id === objectId)
+    const object = this.objects.find((obj) => obj.id === objectId)
     if (!object) return []
 
     // Récupérer toutes les versions du même fichier
     return this.objects
-      .filter(obj => obj.folderId === object.folderId && obj.name === object.name)
+      .filter((obj) => obj.folderId === object.folderId && obj.name === object.name)
       .sort((a, b) => b.revision - a.revision)
   }
 
   async createRevision(objectId: number, data: Partial<ObjectModel>): Promise<MockObject> {
-    const object = this.objects.find(obj => obj.id === objectId)
+    const object = this.objects.find((obj) => obj.id === objectId)
     if (!object) {
       throw new Error('Objet non trouvé')
     }
@@ -387,12 +379,12 @@ test.group('ObjectRepository Mocked Tests', (group) => {
       },
     ]
 
-    await Promise.all(objectsData.map(data => objectRepository.create(data as any)))
+    await Promise.all(objectsData.map((data) => objectRepository.create(data as any)))
 
     // Tester sans pagination
     const allObjects = await objectRepository.listByFolder(folderId)
     assert.lengthOf(allObjects, 3)
-    
+
     // Vérifier l'ordre (tri par nom)
     assert.equal(allObjects[0].name, 'a-document.pdf')
     assert.equal(allObjects[1].name, 'b-document.pdf')
@@ -444,8 +436,8 @@ test.group('ObjectRepository Mocked Tests', (group) => {
 
     // Créer les objets
     await Promise.all([
-      ...user1Objects.map(data => objectRepository.create(data as any)),
-      objectRepository.create(differentUserObject as any)
+      ...user1Objects.map((data) => objectRepository.create(data as any)),
+      objectRepository.create(differentUserObject as any),
     ])
 
     // Récupérer les objets pour l'utilisateur spécifique
@@ -453,7 +445,7 @@ test.group('ObjectRepository Mocked Tests', (group) => {
 
     // Vérifier qu'on récupère uniquement les objets de l'utilisateur
     assert.lengthOf(userObjects, 2)
-    userObjects.forEach(obj => {
+    userObjects.forEach((obj) => {
       assert.equal(obj.userId, userId)
     })
   })
@@ -573,7 +565,7 @@ test.group('ObjectRepository Mocked Tests', (group) => {
 
     // Vérifier qu'on a bien toutes les révisions
     assert.lengthOf(allRevisions, 3)
-    
+
     // Vérifier l'ordre (révision décroissante)
     assert.equal(allRevisions[0].revision, 3)
     assert.equal(allRevisions[1].revision, 2)
@@ -604,7 +596,7 @@ test.group('ObjectRepository Mocked Tests', (group) => {
 
     // Vérifier qu'on a bien toutes les révisions
     assert.lengthOf(allRevisions, 3)
-    
+
     // Vérifier l'ordre (révision décroissante)
     assert.equal(allRevisions[0].revision, 3)
     assert.equal(allRevisions[1].revision, 2)

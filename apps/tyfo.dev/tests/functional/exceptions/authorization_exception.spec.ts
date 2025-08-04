@@ -25,12 +25,12 @@ test.group('AuthorizationException', (group) => {
 
   test('should create an instance with context', ({ assert }) => {
     const message = 'Permission denied'
-    const context = { 
+    const context = {
       resource: 'document',
       action: 'edit',
-      userId: '123' 
+      userId: '123',
     }
-    
+
     const exception = new AuthorizationException(message, context)
 
     assert.equal(exception.message, message)
@@ -42,13 +42,13 @@ test.group('AuthorizationException', (group) => {
   test('should handle error response correctly', async ({ assert }) => {
     const message = 'Access forbidden'
     const exception = new AuthorizationException(message)
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sandbox.stub().returnsThis(),
       json: sandbox.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext

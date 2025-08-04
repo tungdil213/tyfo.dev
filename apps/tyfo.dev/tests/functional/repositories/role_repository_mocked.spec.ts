@@ -1,15 +1,15 @@
 /**
  * @fileoverview Tests mockés pour le RoleRepository
- * 
+ *
  * Ce fichier implémente une version entièrement mockée du RoleRepository
  * qui permet d'exécuter des tests sans dépendre d'une base de données réelle.
  * Cette approche présente plusieurs avantages :
- * 
+ *
  * 1. Sécurité : Pas d'accès aux données sensibles en production
  * 2. Vitesse : Tests plus rapides sans opérations de base de données
  * 3. Isolement : Tests indépendants de l'état de la base de données
  * 4. Déterminisme : Comportement prévisible sans problèmes de contraintes de clés étrangères
- * 
+ *
  * L'approche mockée reproduit fidèlement le comportement du repository réel,
  * y compris les relations many-to-many entre rôles et permissions.
  */
@@ -58,11 +58,11 @@ interface MockPermissionData {
 /**
  * @class MockPermission
  * @description Classe pour simuler une permission sans dépendre de la base de données
- * 
+ *
  * Cette classe reproduit les comportements essentiels du modèle Permission d'AdonisJS
  * tout en fonctionnant entièrement en mémoire. Elle implémente l'interface Partial<Permission>
  * pour garantir une compatibilité de type avec les méthodes du repository.
- * 
+ *
  * @implements {Partial<Permission>}
  */
 class MockPermission implements Partial<Permission> {
@@ -78,7 +78,7 @@ class MockPermission implements Partial<Permission> {
   public updatedAt: DateTime
   /** Rôles associés à cette permission (relation many-to-many) */
   public roles: MockRole[] = []
-  
+
   // Propriétés Lucid Model nécessaires pour satisfaire l'interface
   public $attributes = {}
   public $extras = {}
@@ -101,7 +101,7 @@ class MockPermission implements Partial<Permission> {
   /**
    * Convertit l'objet en structure JSON simple
    * Cette méthode simule le comportement du modèle AdonisJS lors de la sérialisation
-   * 
+   *
    * @returns {Object} Représentation JSON de l'objet Permission
    */
   toJSON() {
@@ -118,16 +118,16 @@ class MockPermission implements Partial<Permission> {
 /**
  * @class MockRole
  * @description Classe qui simule un rôle sans dépendre d'une base de données
- * 
+ *
  * Cette classe reproduit les comportements essentiels du modèle Role d'AdonisJS
  * tout en fonctionnant entièrement en mémoire. Elle implémente l'interface
  * Partial<Role> pour garantir une compatibilité de type avec les méthodes
  * du repository.
- * 
+ *
  * Les relations many-to-many avec les permissions sont simulées via des tableaux
  * JavaScript, ce qui évite la complexité des jointures SQL et les problèmes
  * de clés étrangères.
- * 
+ *
  * @implements {Partial<Role>}
  */
 class MockRole implements Partial<Role> {
@@ -145,7 +145,7 @@ class MockRole implements Partial<Role> {
   public updatedAt: DateTime
   /** Permissions associées à ce rôle (relation many-to-many) */
   public permissions: MockPermission[] = []
-  
+
   // Propriétés Lucid Model nécessaires pour satisfaire l'interface
   public users: any[] = []
   public $attributes = {}
@@ -245,23 +245,23 @@ interface RolePermissionRelation {
 /**
  * @class MockRoleRepository
  * @description Implémentation mockée complète du RoleRepository
- * 
+ *
  * Cette classe simule toutes les fonctionnalités d'un repository de rôles
  * sans dépendre d'une base de données réelle. Elle stocke toutes les données
  * en mémoire et gère les relations many-to-many entre rôles et permissions.
- * 
+ *
  * Avantages de cette approche :
  * 1. Tests isolés : pas de dépendance à une base de données externe
  * 2. Tests rapides : pas de latence due aux opérations de base de données
  * 3. Tests déterministes : contrôle total sur les données de test
  * 4. Tests sécurisés : pas d'accès à des données sensibles
- * 
+ *
  * Cette implémentation gère :
  * - CRUD complet sur les rôles
  * - Création de permissions
  * - Relations many-to-many entre rôles et permissions
  * - Recherche par différents critères (UUID, nom)
- * 
+ *
  * @implements {RoleRepositoryContract}
  */
 class MockRoleRepository implements RoleRepositoryContract {
@@ -278,7 +278,7 @@ class MockRoleRepository implements RoleRepositoryContract {
 
   /**
    * Crée un nouveau rôle dans le système
-   * 
+   *
    * @param {Partial<Role>} data - Données du rôle à créer
    * @returns {Promise<MockRole>} Le rôle créé avec son ID auto-incrémenté
    */
@@ -321,7 +321,9 @@ class MockRoleRepository implements RoleRepositoryContract {
     }
 
     // Éviter les doublons
-    if (!this.rolePermissions.some((rp) => rp.roleId === roleId && rp.permissionId === permissionId)) {
+    if (
+      !this.rolePermissions.some((rp) => rp.roleId === roleId && rp.permissionId === permissionId)
+    ) {
       this.rolePermissions.push({ roleId, permissionId })
       role.permissions.push(permission)
       permission.roles.push(role)
@@ -436,15 +438,15 @@ class MockRoleRepository implements RoleRepositoryContract {
     const roleIndex = this.roles.findIndex((r) => r.uuid === uuid)
     if (roleIndex !== -1) {
       const roleId = this.roles[roleIndex].id
-      
+
       // Supprimer toutes les relations de ce rôle
       this.rolePermissions = this.rolePermissions.filter((rp) => rp.roleId !== roleId)
-      
+
       // Supprimer le rôle de la liste des rôles associés aux permissions
       this.permissions.forEach((p) => {
         p.roles = p.roles.filter((r) => r.id !== roleId)
       })
-      
+
       // Supprimer le rôle lui-même
       this.roles.splice(roleIndex, 1)
     }

@@ -29,13 +29,13 @@ test.group('NotFoundException', (group) => {
   test('should handle error response with custom message', async ({ assert }) => {
     const message = 'Custom not found message'
     const exception = new NotFoundException(message)
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sandbox.stub().returnsThis(),
       json: sandbox.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext
@@ -53,17 +53,19 @@ test.group('NotFoundException', (group) => {
     )
   })
 
-  test('should handle error response with default message when message is not provided', async ({ assert }) => {
+  test('should handle error response with default message when message is not provided', async ({
+    assert,
+  }) => {
     // Create exception without message
     const exception = new NotFoundException()
     exception.message = '' // explicitly set to empty to test default message path
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sandbox.stub().returnsThis(),
       json: sandbox.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext
@@ -85,13 +87,13 @@ test.group('NotFoundException', (group) => {
     const message = 'Resource not found'
     const exception = new NotFoundException(message)
     exception.status = 410 // Gone - custom status
-    
+
     // Mock HttpContext
     const mockResponse = {
       status: sandbox.stub().returnsThis(),
       json: sandbox.stub(),
     }
-    
+
     const mockCtx = {
       response: mockResponse,
     } as unknown as HttpContext

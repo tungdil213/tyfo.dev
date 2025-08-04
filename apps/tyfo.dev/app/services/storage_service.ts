@@ -10,11 +10,29 @@ import ObjectRepository from '#repositories/object_repository'
 import ObjectModel from '#models/object'
 import { generateUuid } from '#utils/uuid_helper'
 
+/**
+ * Service responsable de la gestion du stockage et des opérations sur les fichiers.
+ *
+ * Ce service prend en charge :
+ * - L'upload et le traitement des fichiers
+ * - Le versionnement des documents
+ * - La gestion des métadonnées
+ * - La recherche et le filtrage des fichiers
+ * - La génération d'URL d'accès temporaires
+ * - Le déplacement et la suppression de fichiers
+ */
+
 @inject()
 export default class StorageService implements StorageContract {
   private storage
   private baseUrl = env.get('APP_URL')
 
+  /**
+   * Initialise le service de stockage
+   *
+   * @param objectRepository - Référentiel d'objets pour manipuler les documents et leurs métadonnées
+   * @param disk - Gestionnaire de stockage à utiliser (par défaut: disque configuré dans l'application)
+   */
   constructor(
     private objectRepository: ObjectRepository,
     disk = drive.use()
@@ -23,14 +41,23 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Génère un hash unique pour le fichier
+   * Génère un hash unique pour le fichier basé sur son contenu
+   * 
+   * @param buffer - Contenu du fichier à hacher
+   * @returns Une chaîne hexadécimale représentant le hash SHA-256 du contenu
    */
   #generateFileHash(buffer: Buffer): string {
     return createHash('sha256').update(buffer).digest('hex')
   }
 
   /**
-   * Méthode interne pour stocker un fichier
+   * Méthode interne pour stocker un fichier dans le système de stockage
+   *
+   * @param buffer - Contenu du fichier à stocker
+   * @param fileName - Nom du fichier à stocker
+   * @param folder - Dossier où stocker le fichier
+   * @returns Chemin complet du fichier stocké
+   * @throws Error - Si le stockage du fichier échoue
    */
   async #storeFile(buffer: Buffer, fileName: string, folder: string): Promise<string> {
     const filePath = `${folder}/${fileName}`
@@ -43,7 +70,13 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Upload un fichier (utilitaire)
+   * Upload un fichier sur le système de stockage et génère son hash
+   *
+   * @param buffer - Contenu du fichier à uploader
+   * @param originalName - Nom original du fichier
+   * @param folder - Dossier cible (par défaut: 'uploads')
+   * @returns Objet contenant le chemin où le fichier a été stocké et son hash
+   * @throws Error - Si l'upload échoue pour une raison quelconque
    */
   async uploadFile(
     buffer: Buffer,
@@ -63,7 +96,14 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Traite et stocke un fichier uploadé
+   * Traite et stocke un fichier temporaire uploadé par l'utilisateur
+   *
+   * @param file - Fichier uploadé via le bodyparser
+   * @param userId - Identifiant de l'utilisateur qui a uploadé le fichier
+   * @param folderId - Identifiant du dossier où stocker le fichier
+   * @param name - Nom personnalisé pour le fichier (optionnel, utilise le nom client par défaut)
+   * @returns Le modèle d'objet créé représentant le fichier stocké avec ses métadonnées
+   * @throws FileProcessingException - Si le fichier n'est pas valide ou si son traitement échoue
    */
   async processUploadedFile(
     file: MultipartFile,
@@ -100,7 +140,10 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Valide un fichier uploadé
+   * Vérifie qu'un fichier uploadé est valide et complet
+   *
+   * @param file - Fichier uploadé à valider
+   * @throws FileProcessingException - Si le fichier n'est pas valide ou incomplet
    */
   #validateUploadedFile(file: MultipartFile): void {
     if (!file.isValid) {
@@ -117,7 +160,10 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Vérifie si un fichier existe
+   * Vérifie si un fichier existe dans le système de stockage
+   *
+   * @param filePath - Chemin du fichier à vérifier
+   * @returns true si le fichier existe, false sinon
    */
   async fileExists(filePath: string): Promise<boolean> {
     try {
@@ -129,7 +175,10 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Supprime un fichier
+   * Supprime un fichier du système de stockage s'il existe
+   *
+   * @param filePath - Chemin du fichier à supprimer
+   * @throws Error - Si la suppression échoue pour une raison autre que la non-existence du fichier
    */
   async deleteFile(filePath: string): Promise<void> {
     try {
@@ -143,7 +192,11 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Récupère l'URL publique d'un fichier
+   * Récupère l'URL publique d'accès à un fichier
+   *
+   * @param filePath - Chemin du fichier
+   * @returns URL publique d'accès au fichier
+   * @throws Error - Si la génération de l'URL échoue
    */
   async getFileUrl(filePath: string): Promise<string> {
     try {
@@ -156,7 +209,12 @@ export default class StorageService implements StorageContract {
     }
   }
   /**
-   * Génère une URL signée pour un fichier
+   * Génère une URL signée temporaire pour un accès sécurisé à un fichier
+   *
+   * @param filePath - Chemin du fichier
+   * @param expirationInMinutes - Durée de validité de l'URL en minutes (défaut: 60)
+   * @returns URL signée avec une durée de validité limitée
+   * @throws Error - Si la génération de l'URL signée échoue
    */
   async getSignedUrl(filePath: string, expirationInMinutes: number = 60): Promise<string> {
     try {
@@ -174,7 +232,13 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Crée une nouvelle version d'un fichier existant
+   * Crée une nouvelle version d'un fichier existant à partir d'un nouveau contenu
+   *
+   * @param file - Nouveau contenu du fichier
+   * @param objectUuid - Identifiant unique de l'objet à versionner
+   * @param userId - Identifiant de l'utilisateur créant la nouvelle version
+   * @returns Modèle de la nouvelle version créée
+   * @throws Error - Si le fichier original n'existe pas ou si la création de version échoue
    */
   async createNewVersion(
     file: MultipartFile,
@@ -221,7 +285,11 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Récupère l'historique des versions d'un fichier
+   * Récupère l'historique complet des versions d'un fichier
+   *
+   * @param objectUuid - Identifiant unique de l'objet
+   * @returns Tableau des versions du fichier triées par numéro de version décroissant
+   * @throws Error - Si l'objet n'existe pas ou si la récupération des versions échoue
    */
   async getFileVersions(objectUuid: string): Promise<ObjectModel[]> {
     try {
@@ -242,6 +310,11 @@ export default class StorageService implements StorageContract {
 
   /**
    * Restaure une version antérieure d'un fichier comme version actuelle
+   *
+   * @param versionUuid - Identifiant unique de la version à restaurer
+   * @param userId - Identifiant de l'utilisateur effectuant la restauration
+   * @returns Modèle de la nouvelle version (restaurée) créée
+   * @throws Error - Si la version à restaurer n'existe pas ou si la restauration échoue
    */
   async restoreVersion(versionUuid: string, userId: number): Promise<ObjectModel> {
     try {
@@ -275,7 +348,12 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Met à jour les métadonnées d'un fichier sans créer de nouvelle version
+   * Met à jour les métadonnées d'un fichier sans modifier son contenu ni créer une nouvelle version
+   *
+   * @param objectUuid - Identifiant unique de l'objet à mettre à jour
+   * @param updates - Métadonnées à modifier (nom et/ou type MIME)
+   * @returns Modèle de l'objet mis à jour
+   * @throws Error - Si l'objet n'existe pas ou si la mise à jour échoue
    */
   async updateMetadata(
     objectUuid: string,
@@ -298,7 +376,13 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Déplace un fichier d'un dossier à un autre
+   * Déplace un fichier d'un dossier à un autre en créant une nouvelle entrée et conservant l'historique
+   *
+   * @param objectUuid - Identifiant unique de l'objet à déplacer
+   * @param targetFolderId - Identifiant du dossier de destination
+   * @param userId - Identifiant de l'utilisateur effectuant le déplacement
+   * @returns Modèle de l'objet déplacé
+   * @throws Error - Si l'objet n'existe pas, si le dossier cible n'existe pas, ou si le déplacement échoue
    */
   async moveFile(objectUuid: string, targetFolderId: number, userId: number): Promise<ObjectModel> {
     try {
@@ -352,7 +436,13 @@ export default class StorageService implements StorageContract {
   }
 
   /**
-   * Recherche des fichiers par métadonnées
+   * Recherche des fichiers par métadonnées avec filtrage optionnel par dossier et utilisateur
+   *
+   * @param criteria - Critères de recherche (nom et/ou type MIME)
+   * @param folderId - Identifiant du dossier pour limiter la recherche (optionnel)
+   * @param userId - Identifiant de l'utilisateur pour limiter la recherche (optionnel)
+   * @returns Tableau des objets correspondant aux critères
+   * @throws Error - Si la recherche échoue
    */
   async searchByMetadata(
     criteria: Partial<Pick<ObjectModel, 'name' | 'mimeType'>>,
